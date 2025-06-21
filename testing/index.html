@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Client Of Making</title>
+
+        <script src="/public/tokenRequired.js"></script>
+    </head>
+    <body>
+        <script>
+            requireTokenOrRedirect();
+        </script>
+
+        <h1>Client of Making!</h1>
+        <p>An <strong>unofficial</strong> client for Hack Club's <strong>Summer of Making</strong>!</p>
+
+        <label for="pathSelect">Choose a page to fetch</label>
+        <select id="pathSelect">
+            <option value="/campfire">Campfire</option>
+            <option value="/explore">Explore</option>
+            <option value="/projects">Your Projects</option>
+            <option value="/vote">Vote</option>
+            <option value="/shop">Shop</option>
+        </select>
+
+        <button onclick="fetchPage()">Fetch Page!</button>
+
+        <h2>Response:</h2>
+        <pre id="output">Nothing loaded yet.</pre>
+
+        <script>
+            async function fetchPage() {
+                const cookie = getToken();
+                const path = document.getElementById('pathSelect').value;
+
+                if (!cookie) return alert("Paste your cookie first!");
+
+                document.getElementById('output').textContent = "Loading...";
+
+                try {
+                    const res = await fetch('/fetch', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({cookie, path})
+                    });
+
+                    const text = await res.text();
+                    document.getElementById('output').textContent = text;
+                } catch (err) {
+                    alert("WHAT")
+                }
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,82 @@
+body {
+    background-color: var(--secondary);
+    background-image: url(/public/white-sand.png);
+    font-family: 'National Park', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: var(--text);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100dvh;
+}
+
+button {
+    border: none;
+    font-family: 'National Park', sans-serif;
+    font-size: 1rem;
+    padding: 12px 20px;
+    cursor: pointer;
+    background-color: var(--primary);
+    color: var(--text);
+    border-radius: var(--radius);
+    border: 2px solid var(--accent);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+button:hover {
+    background-color: var(--accent);
+    color: white;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: var(--transition);
+}
+
+a:hover {
+    color: var(--text_highlight);
+}
+
+p {
+    font-weight: 400;
+}
+
+strong {
+    font-weight: 500;
+}
+
+h1, h2, h3 {
+    margin-top: 0;
+}
+
+h1 {
+    font-size: 2.25rem;
+    font-weight: 500;
+}
+
+h2 {
+    font-size: 1.75rem;
+}
+
+h3 {
+    font-size: 1.25rem;
+}
+
+.heading {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.save__button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
