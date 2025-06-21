@@ -39,7 +39,15 @@
                         <img height="75" width="auto" id="happy-dino">
                         <div style="display: flex; flex-direction: column;">
                             <h2>We're doing our part!</h2>
-                            <p>We cache your requests for 1 minute to prevent slowing down Summer of Making!</p>
+                            <p>We cache your campfire requests for 1 minute to prevent slowing down Summer of Making!</p>
+                        </div>
+                    </div>
+
+                    <div class="expiration__notice regular-glassmorphism">
+                        <img height="75" width="auto" id="nervous-dino">
+                        <div style="display: flex; flex-direction: column;">
+                            <h2>Remember to devlog!</h2>
+                            <p>Hackatime minutes expires after 24 hours without a devlog post, so remember to commit your code and devlog your progress after every work session!</p>
                         </div>
                     </div>
 
@@ -108,14 +116,24 @@
 
             fetchPage()
 
-            const dinoImages = [
+            const happyDinoImages = [
                 '/public/orpheus/party_dino.gif',
                 '/public/orpheus/chill_dino.png',
                 '/public/orpheus/party_orpheus.png',
                 '/public/orpheus/nervous_dino.gif' // because i might've done my cache wrong who knows?
             ];
-            const randomIndex = Math.floor(Math.random() * dinoImages.length);
-            document.getElementById('happy-dino').src = dinoImages[randomIndex];
+            const randomIndex = Math.floor(Math.random() * happyDinoImages.length);
+            document.getElementById('happy-dino').src = happyDinoImages[randomIndex];
+
+            const nervousDinoImages = [
+                '/public/orpheus/nervous_dino.gif',
+                '/public/orpheus/oopheus.png',
+                '/public/orpheus/waaaah_dino.png',
+                '/public/orpheus/man_face_dino.png',
+                '/public/orpheus/ugh.png'
+            ];
+            const randomNervousDinoIndex = Math.floor(Math.random() * nervousDinoImages.length);
+            document.getElementById('nervous-dino').src = nervousDinoImages[randomIndex];
 
             const roasts = [
                 "Start coding now. Actually, please don't, I don't need more competition.",

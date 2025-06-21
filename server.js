@@ -3,7 +3,9 @@ const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
 const cheerio = require('cheerio');
-const { data } = require('jquery');
+
+require('dotenv').config();
+const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
 
 const app = express();
 app.use(cors());
@@ -12,9 +14,42 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 app.use(express.static(path.join(__dirname, 'testing')));
 
+const projectBannerRoute = require('./server/routes/projectBanner');
+app.use(projectBannerRoute)
+
 const allowedPaths = new Set(['/vote', '/shop', '/projects', '/campfire', '/explore']);
 const cache = {};
-const CACHE_LIFETIME_MS = 60 * 1000;
+
+const DEFAULT_CACHE_LIFETIME_MS = 60 * 1000;
+
+const PATH_CACHE_LIFETIMES = {
+    '/explore': 10 * 60 * 1000,
+};
+
+app.get('/slack/user/:id', async (req, res) => {
+    const slackId = req.params.id;
+    if (!slackId) return res.status(400).json({error: 'Missing slack ID'});
+
+    try {
+        const slackRes = await axios.get(`https://slack.com/api/users.info?user=${slackId}`, {
+            headers: {
+                Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}`
+            }
+        });
+
+        if (!slackRes.data.ok) {
+            return res.status(500).json({error: 'Slack API error', detail: slackRes.data});
+        }
+
+        const user = slackRes.data.user;
+        const name = user?.profile?.display_name || user?.real_name || 'Unknown';
+        const image_24 = user?.profile?.image_24 || user?.profile?.image_32 || 'Unknown';
+        return res.json({name, image_24});
+    } catch (err) {
+        console.error(`Error fetching Slack user for ${slackId}:`, err.message);
+        return res.status(500).json({error: 'Internal server error'});
+    }
+});
 
 app.post('/fetch', async (req, res) => {
     const { cookie, path: requestedPath } = req.body;
@@ -30,11 +65,13 @@ app.post('/fetch', async (req, res) => {
     const cacheKey = requestedPath;
     const cachedEntry = cache[requestedPath];
 
-    if (cachedEntry && (Date.now() - cachedEntry.timestamp < CACHE_LIFETIME_MS)) {
-        console.log(`Serving ${requestedPath} from cache (still valid).`);
+    const effectiveCacheLifetime = PATH_CACHE_LIFETIMES[requestedPath] || DEFAULT_CACHE_LIFETIME_MS;
+
+    if (cachedEntry && (Date.now() - cachedEntry.timestamp < effectiveCacheLifetime)) {
+        console.log(`Serving ${requestedPath} from cache (still valid for ${effectiveCacheLifetime / 1000} seconds).`);
         return res.send(cachedEntry.data);
     } else if (cachedEntry) {
-        console.log(`Cache for ${requestedPath} expired. Re-fetching.`);
+        console.log(`Cache for ${requestedPath} expired (lifetime was ${effectiveCacheLifetime / 1000} seconds). Re-fetching.`);
         delete cache[cacheKey];
     } else {
         console.log(`No cache for ${requestedPath}. Fetching.`)
@@ -82,7 +119,7 @@ app.post('/fetch', async (req, res) => {
                     }
                 });
 
-                const projects = exploreResponse.data;
+                let projects = exploreResponse.data;
                 const projectTitles = projects.map(project => project.name || project.title || 'Untitled');
 
                 apiResponseData.extractedData = {
@@ -93,7 +130,7 @@ app.post('/fetch', async (req, res) => {
                 console.error('Error fetching /explore project API:', apiErr.message);
                 apiResponseData.extractedData = {
                     projectTitles: [],
-                    rawProjects: project
+                    rawProjects: []
                 };
             }
         } else if (requestedPath === '/projects') {
@@ -115,6 +152,7 @@ app.post('/fetch', async (req, res) => {
         res.json(apiResponseData);
     } catch (err) {
         console.error(`Error fetching ${requestedPath}: `, err.message);
+        res.status(500).json({ status: 'error', message: `Failed to fetch data for ${requestedPath}` });
     }
 });
 

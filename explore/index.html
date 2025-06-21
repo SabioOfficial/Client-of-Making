@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>COM - Campfire</title>
+        <title>COM - Explore</title>
 
         <link rel="stylesheet" href="/public/style.css">
         <link rel="stylesheet" href="style.css">
@@ -39,63 +39,251 @@
                         <img height="75" width="auto" id="happy-dino">
                         <div style="display: flex; flex-direction: column;">
                             <h2>We're doing our part!</h2>
-                            <p>We cache your requests for 1 minute to prevent slowing down Summer of Making!</p>
+                            <p>We cache your explore requests for 10 minutes to prevent slowing down Summer of Making!</p>
                         </div>
                     </div>
+                    <div class="filters__div">
+                        <select id="filter__category" class="regular-glassmorphism">
+                            <input type="text" id="search__input" placeholder="searchy me projects..." class="search-input regular-glassmorphism">
+                        </select>
+                    </div>
+                    <div class="projects-grid">
+
+                    </div>
+                    <button id="load-more-btn" class="load-more-btn">Load More</button>
                 </div>
             </div>
         </div>
-
+        
         <script>
+            let allProjects = [];
+            let filteredProjects = [];
+            let currentOffset = 0;
+            let searchQuery = '';
+            const slackNameCache = {};
+            const slackPfpCache = {};
+            const PROJECTS_PER_PAGE = 48;
+
+            document.getElementById('search__input').addEventListener('input', e => {
+                searchQuery = e.target.value.toLowerCase();
+                applyFilters();
+            });
+
+            const getCreatorFromRepo = (repoLink) => {
+                try {
+                    const match = new URL(repoLink).pathname.split('/')[1];
+                    return match || 'Unknown';
+                } catch {
+                    return 'Unknown';
+                }
+            };
+        
             async function fetchPage() {
                 const cookie = getToken();
-                const path = "/campfire";
-
-                const status = document.getElementById('main-area__status')
-                const statusImage = document.getElementById('main-area__status-image')
-                status.parentElement.classList.add('centeredHV')
-                status.textContent = "Pending SOM backend request!"
-                statusImage.src = "/public/orpheus/waaaah_dino.png"
-
+                const path = "/explore";
+            
+                const statusDiv = document.querySelector('.main-area__status-div');
+                const status = document.getElementById('main-area__status');
+                const statusImage = document.getElementById('main-area__status-image');
+                statusDiv.classList.add('centeredHV');
+                status.textContent = "Pending SOM backend request!";
+                statusImage.src = "/public/orpheus/waaaah_dino.png";
+            
                 try {
                     const res = await fetch('/fetch', {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({cookie, path})
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ cookie, path })
                     });
-
+                
                     const text = await res.text();
-                    let extractedData;
-                    try {
-                        const parsed = JSON.parse(text);
-                        extractedData = parsed?.extractedData;
-                    } catch (e) {
-                        throw new Error("Invalid JSON response from backend.");
-                    }
-
-                    const todayTime = extractedData?.todayCodingTime?.trim();
-
-                    if (!todayTime) {
-                        throw new Error("Your token seems to be corrupted! Please restart the authentication process at /auth/");
-                    }
-
-                    console.log("todayCodingTime:", todayTime);
-                    status.parentElement.remove();
+                    const parsedResponse = JSON.parse(text);
+                
+                    const extractedData = parsedResponse?.extractedData;
+                    const projects = extractedData?.rawProjects;
+                
+                    if (!Array.isArray(projects)) throw new Error("Invalid projects data");
+                
+                    allProjects = projects;
+                    filteredProjects = [...allProjects];
+                    statusDiv.remove();
+                
+                    populateCategoryDropdown(allProjects);
+                    renderProjects();
                 } catch (err) {
-                    statusImage.src = "/public/orpheus/man_face_dino.png"
-                    status.textContent = err.message
+                    statusImage.src = "/public/orpheus/man_face_dino.png";
+                    status.textContent = err.message;
+                    console.error("Error fetching or rendering projects:", err);
+                }
+            }
+        
+            function populateCategoryDropdown(projects) {
+                const dropdown = document.getElementById('filter__category');
+                dropdown.innerHTML = '<option value="all">All Categories</option>';
+            
+                const categories = [...new Set(projects.map(p => p.category).filter(Boolean))].sort();
+                for (const category of categories) {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    dropdown.appendChild(option);
+                }
+            
+                dropdown.addEventListener('change', () => {
+                    applyFilters();
+                });
+            }
+        
+            function renderProjects() {
+                currentOffset = 0;
+                document.querySelector('.projects-grid').innerHTML = '';
+                document.getElementById('load-more-btn').style.display = 'block';
+                renderNextBatch();
+            }
+        
+            function renderNextBatch() {
+                const grid = document.querySelector('.projects-grid');
+                const next = filteredProjects.slice(currentOffset, currentOffset + PROJECTS_PER_PAGE);
+            
+                for (const project of next) {
+                    const card = document.createElement('div');
+                    card.classList.add('project-card', 'regular-glassmorphism');
+                
+                    const banner = document.createElement('img');
+                    banner.classList.add('project-card__banner');
+                    const fallback = "/public/banner-placeholder.png";
+                
+                    getBannerUrl(project.id).then(url => {
+                        banner.src = url || fallback;
+                        banner.alt = `${project.title} Banner`;
+                    });
+                
+                    card.appendChild(banner);
+                    
+                    let creator = project.creator_name || getCreatorFromRepo(project.repo_link) || '?';
+
+                    const title = document.createElement('h3');
+                    title.classList.add('project-card__title');
+                    title.innerHTML = `${project.title} <span class="project-card__creator">by ${creator || '?'}</span>`;
+                    card.appendChild(title);
+
+                    if (project.slack_id && !project.creator_name) {
+                        const span = title.querySelector('.project-card__creator');
+                        if (slackNameCache[project.slack_id]) {
+                            project.creator_name = slackNameCache[project.slack_id];
+                            span.textContent = `by ${slackNameCache[project.slack_id]}`;
+                        } else {
+                            fetch(`/slack/user/${project.slack_id}`)
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.name) {
+                                        slackNameCache[project.slack_id]
+                                        project.creator_name = data.name;
+                                        span.textContent = `by ${data.name}`;
+                                    }
+                                    if (data.image_24) {
+                                        project.creator_name = data.name;
+                                        span.innerHTML = `by <img src="${data.image_24}" width="19" height="19"> ${data.name}`;
+                                    }
+                                })
+                                .catch(err => console.error('Failed to fetch Slack user:', err));
+                        }
+                    }
+                
+                    const desc = document.createElement('p');
+                    desc.classList.add('project-card__description');
+                    desc.textContent = project.description;
+                    card.appendChild(desc);
+                
+                    if (project.category) {
+                        const cat = document.createElement('p');
+                        cat.classList.add('project-card__category');
+                        cat.innerHTML = `<svg width="18" height="18" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.5 16.5C10.5 16.1022 10.658 15.7206 10.9393 15.4393C11.2206 15.158 11.6022 15 12 15H36C36.3978 15 36.7794 15.158 37.0607 15.4393C37.342 15.7206 37.5 16.1022 37.5 16.5C37.5 16.8978 37.342 17.2794 37.0607 17.5607C36.7794 17.842 36.3978 18 36 18H12C11.6022 18 11.2206 17.842 10.9393 17.5607C10.658 17.2794 10.5 16.8978 10.5 16.5ZM15 24C15 23.6022 15.158 23.2206 15.4393 22.9393C15.7206 22.658 16.1022 22.5 16.5 22.5H31.5C31.8978 22.5 32.2794 22.658 32.5607 22.9393C32.842 23.2206 33 23.6022 33 24C33 24.3978 32.842 24.7794 32.5607 25.0607C32.2794 25.342 31.8978 25.5 31.5 25.5H16.5C16.1022 25.5 15.7206 25.342 15.4393 25.0607C15.158 24.7794 15 24.3978 15 24ZM19.5 31.5C19.5 31.1022 19.658 30.7206 19.9393 30.4393C20.2206 30.158 20.6022 30 21 30H27C27.3978 30 27.7794 30.158 28.0607 30.4393C28.342 30.7206 28.5 31.1022 28.5 31.5C28.5 31.8978 28.342 32.2794 28.0607 32.5607C27.7794 32.842 27.3978 33 27 33H21C20.6022 33 20.2206 32.842 19.9393 32.5607C19.658 32.2794 19.5 31.8978 19.5 31.5Z" fill="#777"/></svg> ${project.category}`;
+                        card.appendChild(cat);
+                    }
+                
+                    const links = document.createElement('div');
+                    links.classList.add('project-card__links');
+                
+                    if (project.repo_link) {
+                        const a = document.createElement('a');
+                        a.href = project.repo_link;
+                        a.target = '_blank';
+                        a.textContent = 'GitHub Repo';
+                        links.appendChild(a);
+                    }
+                
+                    if (project.demo_link) {
+                        const a = document.createElement('a');
+                        a.href = project.demo_link;
+                        a.target = '_blank';
+                        a.textContent = 'Demo';
+                        links.appendChild(a);
+                    }
+                
+                    if (project.readme_link) {
+                        const a = document.createElement('a');
+                        a.href = project.readme_link;
+                        a.target = '_blank';
+                        a.textContent = 'README';
+                        links.appendChild(a);
+                    }
+                
+                    if (links.children.length > 0) {
+                        card.appendChild(links);
+                    }
+                
+                    grid.appendChild(card);
+                }
+            
+                currentOffset += next.length;
+            
+                if (currentOffset >= filteredProjects.length) {
+                    document.getElementById('load-more-btn').style.display = 'none';
+                }
+            }
+        
+            async function getBannerUrl(projectId) {
+                try {
+                    const res = await fetch(`/project-banner/${projectId}`);
+                    const data = await res.json();
+                    return data.url || null;
+                } catch {
+                    return null;
                 }
             }
 
-            fetchPage()
+            function applyFilters() {
+                const selectedCategory = document.getElementById('filter__category').value;
 
-            const dinoImages = [
-                '/public/orpheus/party_dino.gif',
-                '/public/orpheus/chill_dino.png',
-                '/public/orpheus/party_orpheus.png',
-                '/public/orpheus/nervous_dino.gif' // because i might've done my cache wrong who knows?
-            ];
-            const randomIndex = Math.floor(Math.random() * dinoImages.length);
-            document.getElementById('happy-dino').src = dinoImages[randomIndex];
+                filteredProjects = allProjects.filter(p => {
+                    const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
+                    const matchesSearch = searchQuery === '' ||
+                        (p.title && p.title.toLowerCase().includes(searchQuery)) ||
+                        (p.description && p.description.toLowerCase().includes(searchQuery)) ||
+                        (p.creator_name && p.creator_name.toLowerCase().includes(searchQuery));
+                    return matchesCategory && matchesSearch;
+                });
+
+                currentOffset = 0;
+                document.querySelector('.projects-grid').innerHTML = '';
+                document.getElementById('load-more-btn').style.display = 'block';
+                renderNextBatch();
+            }
+        
+            window.addEventListener('DOMContentLoaded', () => {
+                fetchPage();
+                document.getElementById('load-more-btn').addEventListener('click', renderNextBatch);
+            
+                const dinoImages = [
+                    '/public/orpheus/party_dino.gif',
+                    '/public/orpheus/chill_dino.png',
+                    '/public/orpheus/party_orpheus.png',
+                    '/public/orpheus/nervous_dino.gif'
+                ];
+                const randomIndex = Math.floor(Math.random() * dinoImages.length);
+                document.getElementById('happy-dino').src = dinoImages[randomIndex];
+            });
         </script>
     </body>
+</html>
