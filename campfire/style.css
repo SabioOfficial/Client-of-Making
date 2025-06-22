@@ -13,6 +13,8 @@ body {
         conic-gradient(from -63.44deg at calc(200%/3) 100%, var(--_g))
         var(--primary);
     background-size: 150px 150px;
+
+    color: var(--text);
 }
 
 p {
@@ -20,7 +22,11 @@ p {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-weight: 700;
+    font-weight: 500;
+}
+
+.heading {
+    padding: 0 20px;
 }
 
 .regular-glassmorphism {
@@ -89,11 +95,13 @@ h1, h2, h3, h4, h5, h6 {
 .main-area {
     flex: 1;
     height: 90dvh;
+    padding: 0 20px;
+    overflow-y: scroll;
 }
 
-.main-area__section > div {
-    margin: 16px;
-    padding: 8px 16px;
+.main-area__section {
+    display: flex;
+    flex-direction: column;
 }
 
 .main-area__status-div {
@@ -114,6 +122,8 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     justify-items: center;
     gap: 16px;
+    padding: 8px 16px;
+    margin: 16px;
 }
 
 .cache__notice * {
@@ -126,6 +136,8 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     justify-items: center;
     gap: 16px;
+    padding: 8px 16px;
+    margin: 16px;
 }
 
 .expiration__notice * {
@@ -134,6 +146,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .today-coding-time__div {
     padding: 16px 24px !important;
+    padding: 8px 16px;
+    margin: 16px;
 }
 
 .today-coding-time__div * {
@@ -147,6 +161,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .total-coding-time__div {
     padding: 16px 24px !important;
+    padding: 8px 16px;
+    margin: 16px;
 }
 
 .total-coding-time__div * {
@@ -156,4 +172,53 @@ h1, h2, h3, h4, h5, h6 {
 .total-coding-time__div h2 {
     font-size: 2.5rem;
     margin: 8px 0;
+}
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.project-card {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.project-card__banner {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.project-card__title {
+    font-family: "National Park", sans-serif;
+    font-size: 1.8em;
+    margin-bottom: 10px;
+    color: #4A2D24;
+}
+
+.project-card__description {
+    font-size: 0.95em;
+    color: #555;
+    flex-grow: 1;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.project-card__extra {
+    display: flex;
+    flex-direction: row;
+    font-size: 0.85em;
+    color: #777;
+    margin-top: auto;
+    margin-bottom: 10px;
+    align-items: center;
+    gap: 4px;
 }

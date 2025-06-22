@@ -3,13 +3,21 @@ const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
 const cheerio = require('cheerio');
+const {WebClient} = require('@slack/web-api');
 
 require('dotenv').config();
 const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
 
+const slack = new WebClient(SLACK_BOT_TOKEN);
+
+const LOG_CHANNEL = 'C0935TQ3M16';
+
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+postHourlyCheckpoint();
+setInterval(postHourlyCheckpoint, 60 * 60 * 1000);
 
 app.use(express.static(path.join(__dirname)));
 app.use(express.static(path.join(__dirname, 'testing')));
@@ -17,7 +25,7 @@ app.use(express.static(path.join(__dirname, 'testing')));
 const projectBannerRoute = require('./server/routes/projectBanner');
 app.use(projectBannerRoute)
 
-const allowedPaths = new Set(['/vote', '/shop', '/projects', '/campfire', '/explore']);
+const allowedPaths = new Set(['/vote', '/shop', '/my_projects', '/campfire', '/explore']);
 const cache = {};
 
 const DEFAULT_CACHE_LIFETIME_MS = 60 * 1000;
@@ -25,6 +33,36 @@ const DEFAULT_CACHE_LIFETIME_MS = 60 * 1000;
 const PATH_CACHE_LIFETIMES = {
     '/explore': 10 * 60 * 1000,
 };
+
+let currentCheckpointTs = null;
+
+async function postHourlyCheckpoint() {
+    const now = new Date();
+    const label = now.toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit'});
+    try {
+        const resp = await slack.chat.postMessage({
+            channel: LOG_CHANNEL,
+            text: `:shrek-scream: hourly checkpoint (kill me) - *${label}*`,
+            mrkdwn: true
+        });
+        if (resp.ok) currentCheckpointTs = resp.ts;
+    } catch (err) {
+        console.error('Failed to post to hourly checkpoint:', err)
+    }
+}
+
+async function logToSlack(text) {
+    try {
+        await slack.chat.postMessage({
+            channel: LOG_CHANNEL,
+            text,
+            mrkdwn: true,
+            thread_ts: currentCheckpointTs
+        });
+    } catch (err) {
+        console.error('Failed to post to Slack logger:', err)
+    }
+}
 
 app.get('/slack/user/:id', async (req, res) => {
     const slackId = req.params.id;
@@ -53,6 +91,7 @@ app.get('/slack/user/:id', async (req, res) => {
 
 app.post('/fetch', async (req, res) => {
     const { cookie, path: requestedPath } = req.body;
+    await logToSlack(`:bruhwot: not another fetch request for *${requestedPath}* bruh`);
     
     if (!cookie || !requestedPath) {
         return res.status(400).send('Missing cookie or path');
@@ -78,6 +117,8 @@ app.post('/fetch', async (req, res) => {
     }
 
     try {
+        await logToSlack(`:uparrowparrot: beep boopin' my ass to Summer for *${requestedPath}*`)
+
         console.log(`Fetching ${requestedPath} from upstream.`);
         const response = await axios.get(`https://summer.hackclub.com${requestedPath}`, {
             headers: {
@@ -125,7 +166,7 @@ app.post('/fetch', async (req, res) => {
                 apiResponseData.extractedData = {
                     projectTitles,
                     rawProjects: projects
-                }
+                };
             } catch (apiErr) {
                 console.error('Error fetching /explore project API:', apiErr.message);
                 apiResponseData.extractedData = {
@@ -133,9 +174,31 @@ app.post('/fetch', async (req, res) => {
                     rawProjects: []
                 };
             }
-        } else if (requestedPath === '/projects') {
-            const yourProjects = [];
-            apiResponseData.extractedData.yourProjects = yourProjects
+        } else if (requestedPath === '/my_projects') {
+            const projects = [];
+
+            $('a[href^="/projects/"]').each((i, el) => {
+                const $el = $(el);
+
+                const title = $el.find('h2.line-clamp-1').text().trim();
+
+                // let imageUrl = $el.find('img.w-full-h.full.object-cover.rounded-xl').attr('src') || null;
+                // imageUrl doesnt wanna work for some reason...
+
+                const description = $el
+                    .find('p.mb-4.md\\:mb-6.line-clamp-3.text-sm.md\\:text-base.2xl\\:text-lg.text-gray-600')
+                    .text()
+                    .trim();
+
+                const raw = $el.find('p.text-gray-400').html() || '';
+                const parts = raw.replace(/<br\s*\/?>/g, '|||').split('|||').map(s => s.trim());
+                const codingTime = parts[0] || '';
+                const devlogCount = parts[1] || '';
+
+                projects.push({title, description, codingTime, devlogCount});
+            });
+
+            apiResponseData.extractedData = {yourProjects: projects};
         } else if (requestedPath === '/shop') {
             const shopItems = [];
             apiResponseData.extractedData.shopItems = shopItems;
@@ -149,9 +212,12 @@ app.post('/fetch', async (req, res) => {
             timestamp: Date.now()
         };
 
+        await logToSlack(`:melting-thumbsup: i got \`${Object.keys(apiResponseData.extractedData).join('`, `')}\` and now leave me alone`);
+
         res.json(apiResponseData);
     } catch (err) {
         console.error(`Error fetching ${requestedPath}: `, err.message);
+        await logToSlack(`:airtable: we couldn't fetch *${requestedPath}* because \`${err.message}\` likes airtable's great speed`)
         res.status(500).json({ status: 'error', message: `Failed to fetch data for ${requestedPath}` });
     }
 });

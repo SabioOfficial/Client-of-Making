@@ -46,6 +46,18 @@
                         <select id="filter__category" class="regular-glassmorphism">
                             <input type="text" id="search__input" placeholder="searchy me projects..." class="search-input regular-glassmorphism">
                         </select>
+                        <div class="filter__flags regular-glassmorphism">
+                            <label><input type="checkbox" id="filter__has-demo">Has Demo</label>
+                            <label><input type="checkbox" id="filter__has-readme">Has Readme</label>
+                            <label><input type="checkbox" id="filter__has-repo">Has Repo</label>
+                        </div>
+                        <select id="sort__option" class="regular-glassmorphism">
+                            <option value="default">Sort by luck</option>
+                            <option value="title-asc">Title (A → Z)</option>
+                            <option value="title-desc">Title (Z → A)</option>
+                            <option value="id-asc">ID (Low → High)</option>
+                            <option value="id-desc">ID (High → Low)</option>
+                        </select>
                     </div>
                     <div class="projects-grid">
 
@@ -69,6 +81,8 @@
                 applyFilters();
             });
 
+            document.getElementById('sort__option').addEventListener('change', applyFilters)
+
             const getCreatorFromRepo = (repoLink) => {
                 try {
                     const match = new URL(repoLink).pathname.split('/')[1];
@@ -86,7 +100,7 @@
                 const status = document.getElementById('main-area__status');
                 const statusImage = document.getElementById('main-area__status-image');
                 statusDiv.classList.add('centeredHV');
-                status.textContent = "Pending SOM backend request!";
+                status.innerHTML = "Pending SOM backend request!<br><i>(this usually takes a minute...)</i>";
                 statusImage.src = "/public/orpheus/waaaah_dino.png";
             
                 try {
@@ -132,6 +146,10 @@
                 dropdown.addEventListener('change', () => {
                     applyFilters();
                 });
+
+                document.getElementById('filter__has-demo').addEventListener('change', applyFilters);
+                document.getElementById('filter__has-readme').addEventListener('change', applyFilters);
+                document.getElementById('filter__has-repo').addEventListener('change', applyFilters);
             }
         
             function renderProjects() {
@@ -147,16 +165,13 @@
             
                 for (const project of next) {
                     const card = document.createElement('div');
-                    card.classList.add('project-card', 'regular-glassmorphism');
+                    card.classList.add('project-card');
+                    card.classList.add('regular-glassmorphism')
                 
                     const banner = document.createElement('img');
                     banner.classList.add('project-card__banner');
                     const fallback = "/public/banner-placeholder.png";
-                
-                    getBannerUrl(project.id).then(url => {
-                        banner.src = url || fallback;
-                        banner.alt = `${project.title} Banner`;
-                    });
+                    banner.src = fallback;
                 
                     card.appendChild(banner);
                     
@@ -169,21 +184,25 @@
 
                     if (project.slack_id && !project.creator_name) {
                         const span = title.querySelector('.project-card__creator');
-                        if (slackNameCache[project.slack_id]) {
-                            project.creator_name = slackNameCache[project.slack_id];
-                            span.textContent = `by ${slackNameCache[project.slack_id]}`;
+
+                        if (slackNameCache[project.slack_id] && slackPfpCache[project.slack_id]) {
+                            const name = slackNameCache[project.slack_id];
+                            const pfp = slackPfpCache[project.slack_id];
+                            span.innerHTML = `by <img src=${pfp}" width="19" height="19"> ${name}`;
                         } else {
                             fetch(`/slack/user/${project.slack_id}`)
                                 .then(res => res.json())
                                 .then(data => {
                                     if (data.name) {
-                                        slackNameCache[project.slack_id]
+                                        slackNameCache[project.slack_id] = data.name;
                                         project.creator_name = data.name;
-                                        span.textContent = `by ${data.name}`;
-                                    }
-                                    if (data.image_24) {
-                                        project.creator_name = data.name;
-                                        span.innerHTML = `by <img src="${data.image_24}" width="19" height="19"> ${data.name}`;
+
+                                        if (data.image_24) {
+                                            slackPfpCache[project.slack_id] = data.name;
+                                            span.innerHTML = `by <img src="${data.image_24}" width="19" height="19"> ${data.name}`;
+                                        } else {
+                                            span.textContent = `by ${data.name}`;
+                                        }
                                     }
                                 })
                                 .catch(err => console.error('Failed to fetch Slack user:', err));
@@ -235,7 +254,7 @@
                 
                     grid.appendChild(card);
                 }
-            
+
                 currentOffset += next.length;
             
                 if (currentOffset >= filteredProjects.length) {
@@ -255,6 +274,10 @@
 
             function applyFilters() {
                 const selectedCategory = document.getElementById('filter__category').value;
+                const requireDemo = document.getElementById('filter__has-demo').checked;
+                const requireReadme = document.getElementById('filter__has-readme').checked;
+                const requireRepo = document.getElementById('filter__has-repo').checked;
+                const sortOption = document.getElementById('sort__option').value
 
                 filteredProjects = allProjects.filter(p => {
                     const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
@@ -262,8 +285,26 @@
                         (p.title && p.title.toLowerCase().includes(searchQuery)) ||
                         (p.description && p.description.toLowerCase().includes(searchQuery)) ||
                         (p.creator_name && p.creator_name.toLowerCase().includes(searchQuery));
-                    return matchesCategory && matchesSearch;
+                    const hasDemo = !requireDemo || !!p.demo_link;
+                    const hasReadme = !requireReadme || !!p.readme_link;
+                    const hasRepo = !requireRepo || !!p.repo_link;
+
+                    return matchesCategory && matchesSearch && hasDemo && hasReadme && hasRepo;
                 });
+
+                if (sortOption === 'title-asc') {
+                    filteredProjects.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+                } else if (sortOption === 'title-desc') {
+                    filteredProjects.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+                } else if (sortOption === 'id-asc') {
+                  filteredProjects.sort((a, b) => {
+                    return parseInt(a.id, 10) - parseInt(b.id, 10);
+                  });
+                } else if (sortOption === 'id-desc') {
+                  filteredProjects.sort((a, b) => {
+                    return parseInt(b.id, 10) - parseInt(a.id, 10);
+                  });
+                }
 
                 currentOffset = 0;
                 document.querySelector('.projects-grid').innerHTML = '';

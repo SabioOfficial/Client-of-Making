@@ -146,9 +146,10 @@ button {
     flex-direction: row;
     gap: 16px;
     padding: 0 20px;
+    overflow-x: scroll;
 }
 
-#filter__category {
+#filter__category, #sort__option {
     font-family: "National Park", sans-serif;
     font-size: 1em;
     padding: 10px 14px;
@@ -166,19 +167,19 @@ button {
     max-width: 250px;
 }
 
-#filter__category::after {
+#filter__category::after, #sort__option::after {
     content: '▼';
     float: right;
     margin-left: 10px;
     color: #4A2D24;
 }
 
-#filter__category:hover {
+#filter__category:hover, #sort__option:hover {
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.4);
 }
 
-#filter__category:focus {
+#filter__category:focus, #sort__option:focus {
     outline: none;
     border-color: rgba(255, 255, 255, 0.5);
     box-shadow: 0 0 0 3px rgba(74, 45, 36, 0.2);
@@ -189,10 +190,6 @@ button {
     font-size: 1em;
     padding: 10px 14px;
     border: 1px solid rgba(255, 255, 255, 0.25);
-        border-top-color: rgba(255, 255, 255, 0.25);
-        border-right-color: rgba(255, 255, 255, 0.25);
-        border-bottom-color: rgba(255, 255, 255, 0.25);
-        border-left-color: rgba(255, 255, 255, 0.25);
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(4px);
@@ -208,6 +205,25 @@ button {
 
 .search-input::placeholder {
     color: var(--text);
+}
+
+.filter__flags {
+    margin: 16px 0;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+}
+
+.filter__flags > label {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
 }
 
 .projects-grid {

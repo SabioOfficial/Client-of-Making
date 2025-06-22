@@ -51,6 +51,8 @@
                         </div>
                     </div>
 
+                    <h2 class="heading">Hackatime Dashboard</h2>
+
                     <div class="today-coding-time__div regular-glassmorphism">
                         <h3>Today, you've been coding for</h3>
                         <h2 id="today-coding-time__display">0h 0m</h2>
@@ -62,59 +64,134 @@
                         <h2 id="total-coding-time__display">0h 0m</h2>
                         <p id="roast-display-2">It's time to take a shower.</p>
                     </div>
+
+                    <h2 id="project-count" class="heading">Your Projects (0)</h2>
+
+                    <div class="projects-grid">
+
+                    </div>
                 </div>
             </div>
         </div>
 
         <script>
+            let allProjects = [];
             let todayTime;
             let totalTime;
 
+            const projectCount = document.getElementById('project-count');
+
             async function fetchPage() {
                 const cookie = getToken();
-                const path = "/campfire";
+                const campfirePath = "/campfire";
+                const projectsPath = "/my_projects";
 
-                const status = document.getElementById('main-area__status')
-                const statusImage = document.getElementById('main-area__status-image')
-                status.parentElement.classList.add('centeredHV')
-                status.textContent = "Pending SOM backend request!"
-                statusImage.src = "/public/orpheus/waaaah_dino.png"
+                const status = document.getElementById('main-area__status');
+                const statusImage = document.getElementById('main-area__status-image');
+                status.parentElement.classList.add('centeredHV');
+                status.textContent = "Pending SOM backend request!";
+                statusImage.src = "/public/orpheus/waaaah_dino.png";
 
                 try {
-                    const res = await fetch('/fetch', {
+                    const campfireRes = await fetch('/fetch', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({cookie, path})
+                        body: JSON.stringify({cookie, path: campfirePath})
                     });
 
-                    const text = await res.text();
-                    let extractedData;
+                    const campfireText = await campfireRes.text();
+                    let campfireData;
                     try {
-                        const parsed = JSON.parse(text);
-                        extractedData = parsed?.extractedData;
+                        const parsed = JSON.parse(campfireText);
+                        campfireData = parsed?.extractedData;
                     } catch (e) {
-                        throw new Error("Invalid JSON response from backend.");
+                        throw new Error("Invalid JSON response from backend (/campfire).");
                     }
 
-                    todayTime = extractedData?.todayCodingTime?.trim();
-                    totalTime = extractedData?.totalCodingTime?.trim();
+                    todayTime = campfireData?.todayCodingTime?.trim();
+                    totalTime = campfireData?.totalCodingTime?.trim();
 
                     if (!todayTime) {
                         throw new Error("Your token seems to be corrupted! Please restart the authentication process at /auth/");
                     }
 
-                    status.parentElement.remove();
+                    const projectsRes = await fetch('/fetch', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({cookie, path: projectsPath})
+                    });
 
-                    document.getElementById('main-area__section').style.display = "block";
+                    const projectsText = await projectsRes.text();
+                    console.log("raw /my_projects response", projectsText)
+                    
+                    let projectsData;
+                    try {
+                        const parsed = JSON.parse(projectsText);
+                        projectsData = parsed.extractedData?.yourProjects || [];
+                    } catch (e) {
+                        throw new Error("Invalid JSON response from backend (/my_projects).");
+                    }
+
+                    allProjects = projectsData;
+
+                    projectCount.textContent = `Your Projects (${allProjects.length})`;
+
+                    status.parentElement.remove();
+                    document.getElementById('main-area__section').style.display = "flex";
                     document.getElementById('today-coding-time__display').textContent = todayTime;
                     document.getElementById('total-coding-time__display').textContent = totalTime;
+
+                    renderProjects()
                 } catch (err) {
-                    statusImage.src = "/public/orpheus/man_face_dino.png"
-                    status.textContent = err.message
+                    statusImage.src = "/public/orpheus/man_face_dino.png";
+                    status.textContent = "ermmm" + err.message;
                 }
             }
 
-            fetchPage()
+            function renderProjects() {
+                const grid = document.querySelector(".projects-grid");
+                grid.innerHTML = "";
+
+                allProjects.forEach(proj => {
+                    const card = document.createElement("div");
+                    card.className = "project-card regular-glassmorphism";
+
+                    const banner = document.createElement('img');
+                    banner.classList.add('project-card__banner');
+                    const fallback = "/public/banner-placeholder.png";
+                    banner.src = fallback;
+                    card.appendChild(banner);
+
+                    const title = document.createElement("h3");
+                    title.className = "project-card__title";
+                    title.textContent = proj.title;
+                    card.appendChild(title);
+
+                    const desc = document.createElement("p");
+                    desc.className = "project-card__description";
+                    desc.textContent = proj.description;
+                    card.appendChild(desc);
+
+                    const info = document.createElement("p");
+                    info.className = "project-card__extra";
+                    info.textContent = `${proj.codingTime} - ${proj.devlogCount}`;
+                    card.appendChild(info);
+
+                    grid.appendChild(card);
+                });
+            }
+
+            async function fetchHackatimeComparison(userId) {
+                try {
+                    const [todayRes, yesterdayRes] = await Promise.all([
+
+                    ])
+                } catch (err) {
+                    console.error('Failed to fetch Hackatime comparison:', err)
+                }
+            }
+
+            fetchPage();
 
             const happyDinoImages = [
                 '/public/orpheus/party_dino.gif',
