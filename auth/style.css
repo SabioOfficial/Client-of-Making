@@ -1,82 +1,166 @@
+* {
+    box-sizing: border-box;
+}
+
 body {
-    background-color: var(--secondary);
-    background-image: url(/public/white-sand.png);
-    font-family: 'National Park', sans-serif;
     margin: 0;
-    padding: 0;
-    color: var(--text);
-    line-height: 1.6;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     height: 100dvh;
+    font-family: 'National Park', sans-serif;
+    
+    --_g: #0000 90deg, var(--secondary-transparent) 0;
+    background:
+        conic-gradient(from 116.56deg at calc(100%/3) 0   , var(--_g)),
+        conic-gradient(from -63.44deg at calc(200%/3) 100%, var(--_g))
+        var(--primary);
+    background-size: 150px 150px;
+
+    color: var(--text);
 }
 
 button {
-    border: none;
     font-family: 'National Park', sans-serif;
-    font-size: 1rem;
-    padding: 12px 20px;
-    cursor: pointer;
-    background-color: var(--primary);
-    color: var(--text);
-    border-radius: var(--radius);
-    border: 2px solid var(--accent);
-    box-shadow: var(--shadow);
-    transition: var(--transition);
-}
-
-button:hover {
-    background-color: var(--accent);
+    background-color: rgba(74, 45, 36, 0.8);
     color: white;
-}
-
-a {
+    padding: 8px 15px;
+    border-radius: 8px;
     text-decoration: none;
-    color: inherit;
-    transition: var(--transition);
-}
-
-a:hover {
-    color: var(--text_highlight);
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+    border: none;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 p {
     font-weight: 400;
 }
 
-strong {
+h1, h2, h3, h4, h5, h6 {
     font-weight: 500;
-}
-
-h1, h2, h3 {
-    margin-top: 0;
-}
-
-h1 {
-    font-size: 2.25rem;
-    font-weight: 500;
-}
-
-h2 {
-    font-size: 1.75rem;
-}
-
-h3 {
-    font-size: 1.25rem;
 }
 
 .heading {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
+    padding: 0 20px;
 }
 
-.save__button {
+.regular-glassmorphism {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.centeredHV {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.layout-container {
+    display: flex;
+    align-items: center;
+    height: 100dvh;
+    padding: 0 32px;
+    gap: 32px;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    position: static;
+    top: 50%;
+    padding: 24px 16px;
+    border-radius: 16px;
+    height: 90dvh;
+}
+
+.sidebar div {
+    cursor: pointer;
+    width: fit-content;
+    height: 48px;
+}
+
+.sidebar div svg path {
+    transform-origin: center center;
+    display: block;
+    transition: var(--transition);
+}
+
+.sidebar__campfire:hover svg path {
+    animation: campfire-flicker 0.5s infinite alternate ease;
+}
+
+@keyframes campfire-flicker {
+    0% { transform: rotate(-5deg) scale(1); }
+    20% { transform: rotate(5deg) scale(1.05); }
+    40% { transform: rotate(-8deg) scale(0.98); }
+    60% { transform: rotate(6deg) scale(1.03); }
+    80% { transform: rotate(-3deg) scale(1); }
+    100% { transform: rotate(0deg) scale(1.02); }
+}
+
+.sidebar__explore:hover svg path {
+    transform: rotate(180deg);
+}
+
+.main-area {
+    flex: 1;
+    height: 90dvh;
+    padding: 0 20px;
+    overflow-y: scroll;
+}
+
+.main-area__section {
+    display: flex;
+    flex-direction: column;
+}
+
+.main-area__status-div {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#main-area__status {
+    text-align: center;
+}
+
+.cache__notice {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 8px;
+    justify-items: center;
+    gap: 16px;
+    padding: 8px 16px;
+    margin: 16px;
+}
+
+.cache__notice * {
+    margin: 0;
+}
+
+#tokenInput {
+    font-family: "National Park", sans-serif;
+    font-size: 1em;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    color: #4A2D24;
+    appearance: none;
+    cursor: text;
+    max-width: 100%;
+    transition: all 0.3s ease;
+    margin-left: auto;
+    margin-right: auto;
+    margin: 16px;
 }

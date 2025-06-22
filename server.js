@@ -36,6 +36,9 @@ const PATH_CACHE_LIFETIMES = {
 
 let currentCheckpointTs = null;
 
+const sendDebugDM = require('./public/send-debug-dm');
+app.use(sendDebugDM);
+
 async function postHourlyCheckpoint() {
     const now = new Date();
     const label = now.toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit'});
