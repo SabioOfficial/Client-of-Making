@@ -106,12 +106,14 @@ button {
     height: 90dvh;
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Prevent main area overflow */
+    overflow: hidden;
 }
 
 .main-area__section {
     flex: 1;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) rgba(255, 255, 255, 0);
     padding: 0 20px 20px 20px;
 }
 
@@ -239,6 +241,15 @@ button {
     padding: 20px;
     border-radius: 15px;
     overflow: hidden;
+    cursor: pointer;
+    transition: var(--transition);
+    pointer-events: auto;
+}
+
+.project-card:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-8px) rotate(1deg) scale(1.02);
+    filter: brightness(1.05);
 }
 
 .project-card__banner {
@@ -299,11 +310,12 @@ button {
     border-radius: 8px;
     text-decoration: none;
     font-size: 0.9em;
-    transition: background-color 0.3s ease;
+    transition: var(--transition);
 }
 
 .project-card__links a:hover {
     background-color: #4A2D24;
+    transform: scale(1.05);
 }
 
 .main-area__section {

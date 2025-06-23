@@ -31,13 +31,14 @@ const cache = {};
 const DEFAULT_CACHE_LIFETIME_MS = 60 * 1000;
 
 const PATH_CACHE_LIFETIMES = {
-    '/explore': 10 * 60 * 1000,
+    '/explore': 60 * 60 * 1000,
     '/shop': 20 * 60 * 1000
 };
 
 let currentCheckpointTs = null;
 
 const sendDebugDM = require('./public/send-debug-dm');
+const { url } = require('inspector');
 app.use(sendDebugDM);
 
 async function postHourlyCheckpoint() {
@@ -93,6 +94,10 @@ app.get('/slack/user/:id', async (req, res) => {
         console.error(`Error fetching Slack user for ${slackId}:`, err.message);
         return res.status(500).json({error: 'Internal server error'});
     }
+});
+
+app.get('/projects/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, 'project.html'));
 });
 
 app.post('/fetch', async (req, res) => {
@@ -218,9 +223,11 @@ app.post('/fetch', async (req, res) => {
                 const imageUrl = $card.find('img.rounded-lg.w-full.h-auto.object-scale-down.aspect-square.max-h-48').attr('src')?.trim() || null;
                 const purchaseUrl = $content.find('form.button_to').attr('action').trim() || null;
                 const purchasable = $content.find('button.w-full').attr('disabled');
+                const stock = $content.find('p.text-sm.text-orange-600.font-semibold.mt-2').text().trim() || null;
+                const limited = (stock !== null);
 
                 if (name) {
-                    shopItems.push({name, description, price, imageUrl, purchaseUrl, purchasable});
+                    shopItems.push({name, description, price, imageUrl, purchaseUrl, purchasable, stock, limited});
                 }
             });
 
@@ -245,7 +252,34 @@ app.post('/fetch', async (req, res) => {
     }
 });
 
-const PORT = 3000;
+app.use(function(req, res, next) {
+    if (res.statusCode === 400) {
+        res.sendFile(path.join(__dirname, 'error/400', 'index.html'), err => {
+            if (!err) return;
+            res.type('txt').send('400 Bad Request');
+        });
+        return;
+    }
+
+    res.status(404);
+
+    if (req.accepts('html')) {
+        res.sendFile(path.join(__dirname, 'error/404', 'index.html'), err => {
+            if (!err) return;
+            res.type('txt').send('404 Not Found');
+        });
+        return;
+    }
+
+    if (req.accepts('json')) {
+        res.json({ error: 'Not found', message: `The requested URL ${req.originalUrl} was not found on this server.` });
+        return;
+    }
+
+    res.type('txt').send('Not found');
+});
+
+const PORT = 4000;
 app.listen(PORT, () => {
     console.log(`Client proxy server running on http://localhost:${PORT}`);
     console.log(`Access the client at http://localhost:${PORT}/index.html`);

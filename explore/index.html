@@ -44,7 +44,7 @@
                         <img height="75" width="auto" id="happy-dino">
                         <div style="display: flex; flex-direction: column;">
                             <h2>We're doing our part!</h2>
-                            <p>We cache your explore requests for 10 minutes to prevent slowing down Summer of Making!</p>
+                            <p>We cache your explore requests for 60 minutes to prevent slowing down Summer of Making!</p>
                         </div>
                     </div>
                     <div class="filters__div">
@@ -177,6 +177,14 @@
                     banner.classList.add('project-card__banner');
                     const fallback = "/public/banner-placeholder.png";
                     banner.src = fallback;
+                    if (project.id) {
+                        getBannerUrl(project.id).then(url => {
+                            if (url) banner.src = url;
+                            if (url === "https://hc-cdn.hel1.your-objectstorage.com/s/v3/41e9de19cfa4e099cf25410ac38542776693b54e_t.png") {
+                                banner.src = fallback;
+                            }
+                        });
+                    }
                 
                     card.appendChild(banner);
                     
@@ -247,7 +255,17 @@
                 
                     if (project.readme_link) {
                         const a = document.createElement('a');
-                        a.href = project.readme_link;
+                        let link = project.readme_link;
+                        try {
+                            const url = new URL(project.readme_link);
+                            if (url.hostname === "raw.githubusercontent.com") {
+                                const [user, repo, branch, ...pathParts] = url.pathname.slice(1).split("/");
+                                link = `https://github.com/${user}/${repo}/blob/${branch}/${pathParts.join("/")}`;
+                            }
+                        } catch (e) {
+                            console.error("somethin happened with turning raw github url into github url")
+                        }
+                        a.href = link;
                         a.target = '_blank';
                         a.textContent = 'README';
                         links.appendChild(a);
@@ -256,7 +274,17 @@
                     if (links.children.length > 0) {
                         card.appendChild(links);
                     }
-                
+                    
+                    card.addEventListener('click', (e) => {
+                        if (e.target.closest('a')) return;
+
+                        if (project.id) {
+                            window.location = "https://summer.hackclub.com/projects/" + project.id
+                        } else {
+                            card.style.cursor = "not-allowed"
+                        } 
+                    })
+
                     grid.appendChild(card);
                 }
 
@@ -269,8 +297,13 @@
         
             async function getBannerUrl(projectId) {
                 try {
-                    const res = await fetch(`/project-banner/${projectId}`);
+                    const res = await fetch(`/project-banner/${projectId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('som_token')}`
+                        }
+                    });
                     const data = await res.json();
+                    console.log(data);
                     return data.url || null;
                 } catch {
                     return null;

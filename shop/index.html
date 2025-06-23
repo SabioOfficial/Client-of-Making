@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>COM - Campfire</title>
+        <title>COM - Shop</title>
 
         <link rel="stylesheet" href="/public/style.css">
         <link rel="stylesheet" href="style.css">
@@ -34,12 +34,7 @@
                 </div>
             </div>
             <div class="main-area regular-glassmorphism">
-                <div class="main-area__status-div">
-                    <img id="main-area__status-image" width="128" height="auto">
-                    <p id="main-area__status"></p>
-                </div>
-
-                <div id="main-area__section" class="main-area__section" style="display: none;">
+                <div id="main-area__section" class="main-area__section">
                     <div class="cache__notice regular-glassmorphism">
                         <img height="75" width="auto" id="happy-dino">
                         <div style="display: flex; flex-direction: column;">
@@ -51,7 +46,7 @@
                     <div id="shop-filters" class="category-filter-bar">
                         <div class="primary-filter">
                             <button data-filter="All" class="filter-button regular-glassmorphism selected">All</button>
-                            <button data-filter="Hardware" class="filter-button regular-glassmorphism">Hardware</button>
+                            <button data-filter="Physical" class="filter-button regular-glassmorphism">Physical</button>
                             <button data-filter="Digital" class="filter-button regular-glassmorphism">Digital</button>
                         </div>
                         <select id="secondary-filter">
@@ -67,6 +62,33 @@
         </div>
 
         <script>
+            let averageShellsPerHour = 10
+
+            function showSkeletonCards(count = 48) {
+                const grid = document.querySelector('.shop-grid');
+                grid.innerHTML = '';
+                for (let i = 0; i < count; i++) {
+                    const card = document.createElement('div');
+                    card.className = 'skeleton-card';
+
+                    const title = document.createElement('div');
+                    title.className = 'skeleton skeleton-title';
+                    card.appendChild(title);
+
+                    for (let j = 0; j < 3; j++) {
+                        const line = document.createElement('div');
+                        line.className = 'skeleton skeleton-line';
+                        card.appendChild(line);
+                    }
+
+                    const image = document.createElement('div');
+                    image.className = 'skeleton skeleton-image';
+                    card.appendChild(image);
+
+                    grid.appendChild(card);
+                }
+            }
+
             let allItems = [];
             let selectedPrimary = "All";
             let selectedSecondary = "";
@@ -222,14 +244,10 @@
             };
 
             async function fetchPage() {
+                showSkeletonCards();
+
                 const cookie = getToken();
                 const shopPath = "/shop";
-
-                const status = document.getElementById('main-area__status');
-                const statusImage = document.getElementById('main-area__status-image');
-                status.parentElement.classList.add('centeredHV');
-                status.textContent = "Pending SOM backend request!";
-                statusImage.src = "/public/orpheus/waaaah_dino.png";
 
                 try {
                     const shopRes = await fetch('/fetch', {
@@ -249,13 +267,9 @@
 
                     allItems = shopData.shopItems || [];
 
-                    status.parentElement.remove();
-                    document.getElementById('main-area__section').style.display = "flex";
-
                     renderItems();
                 } catch (err) {
-                    statusImage.src = "/public/orpheus/man_face_dino.png";
-                    status.textContent = "ermmm " + err.message;
+                    alert(err.message);
                 }
             }
 
@@ -307,6 +321,13 @@
                     desc.textContent = item.description;
                     card.appendChild(desc);
 
+                    if (item.limited) {
+                        const stock = document.createElement("p");
+                        stock.className = "item-card__stock";
+                        stock.textContent = item.stock;
+                        card.appendChild(stock);
+                    }
+
                     const image = document.createElement("img");
                     image.className = "item-card__image";
                     image.src = item.imageUrl
@@ -314,7 +335,7 @@
 
                     const price = document.createElement("button");
                     price.className = "item-card__purchase regular-glassmorphism";
-                    price.innerHTML = `<img src="/public/shell.avif" height="16" width="auto"/> ${item.price}`;
+                    price.innerHTML = `<img src="/public/shell.avif" height="16" width="auto"/> ${item.price} <span class="item-card__etr">(≈${item.price / averageShellsPerHour} hrs)</span>`;
                     
                     if (item.purchasable === true) {
                         price.addEventListener('click', () => {

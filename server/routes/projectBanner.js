@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/project-banner/:id', async (req, res) => {
     const { id } = req.params;
-    const cookie = req.params.cookie;
+    const cookie = req.headers.authorization?.replace('Bearer ', '');
 
     try {
         const response = await fetch(`https://summer.hackclub.com/projects/${id}`, {
@@ -13,7 +13,7 @@ router.get('/project-banner/:id', async (req, res) => {
                 'Cookie': cookie,
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko/20100101 Firefox/139.0',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Encoding': 'gzip, deflate, br', 
+                'Accept-Encoding': 'gzip, deflate, br',
                 'Accept-Language': 'en-US,en;q=0.5',
                 'Connection': 'keep-alive',
                 'Upgrade-Insecure-Requests': '1',
@@ -22,23 +22,25 @@ router.get('/project-banner/:id', async (req, res) => {
         });
 
         if (response.status >= 300 && response.status < 400) {
-            return res.status(401).json({error: 'Unauthorized or redirected.'});
+            return res.status(401).json({ error: 'Unauthorized or redirected.' });
         }
 
         const html = await response.text();
         const $ = cheerio.load(html);
-        let bannerUrl = $('main > div:nth-of-type(2) div:nth-of-type(2) > div:nth-of-type(1) img').attr('src');
+
+        let bannerUrl = $('img.object-contain.w-full.h-full.max-h-full.max-w-full').attr('src')?.trim();
 
         if (bannerUrl) {
             if (bannerUrl.startsWith('/')) {
                 bannerUrl = `https://summer.hackclub.com${bannerUrl}`;
             }
-            res.json({ url: bannerUrl });
+            return res.json({ url: bannerUrl });
         } else {
-            res.status(404).json({ error: 'Banner not found' });
+            return res.status(404).json({ error: 'Banner not found' });
         }
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error(err);
+        return res.status(500).json({ error: err.message });
     }
 });
 
