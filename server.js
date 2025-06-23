@@ -32,6 +32,7 @@ const DEFAULT_CACHE_LIFETIME_MS = 60 * 1000;
 
 const PATH_CACHE_LIFETIMES = {
     '/explore': 10 * 60 * 1000,
+    '/shop': 20 * 60 * 1000
 };
 
 let currentCheckpointTs = null;
@@ -41,7 +42,9 @@ app.use(sendDebugDM);
 
 async function postHourlyCheckpoint() {
     const now = new Date();
-    const label = now.toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit'});
+    const nextHour = new Date(now);
+    nextHour.setMinutes(0, 0, 0);
+    const label = nextHour.toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit'});
     try {
         const resp = await slack.chat.postMessage({
             channel: LOG_CHANNEL,
@@ -204,7 +207,24 @@ app.post('/fetch', async (req, res) => {
             apiResponseData.extractedData = {yourProjects: projects};
         } else if (requestedPath === '/shop') {
             const shopItems = [];
-            apiResponseData.extractedData.shopItems = shopItems;
+            
+            $('.card-with-gradient').each((i, el) => {
+                const $card = $(el);
+                const $content = $card.find('.card-content');
+
+                const name = $content.find('h3.text-xl.font-bold.mb-2').text().trim();
+                const description = $content.find('p.text-gray-700').text().trim();
+                const price = $content.find('div.absolute.top-2.right-2.text-lg.font-bold.whitespace-nowrap.flex.items-center').text().trim();
+                const imageUrl = $card.find('img.rounded-lg.w-full.h-auto.object-scale-down.aspect-square.max-h-48').attr('src')?.trim() || null;
+                const purchaseUrl = $content.find('form.button_to').attr('action').trim() || null;
+                const purchasable = $content.find('button.w-full').attr('disabled');
+
+                if (name) {
+                    shopItems.push({name, description, price, imageUrl, purchaseUrl, purchasable});
+                }
+            });
+
+            apiResponseData.extractedData = { shopItems };
         } else if (requestedPath === '/vote') {
             const voteInfo = {};
             apiResponseData.extractedData.voteInfo = voteInfo;
