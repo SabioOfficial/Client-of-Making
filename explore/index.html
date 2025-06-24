@@ -34,11 +34,6 @@
                 </div>
             </div>
             <div class="main-area regular-glassmorphism">
-                <div class="main-area__status-div">
-                    <img id="main-area__status-image" width="128" height="auto">
-                    <p id="main-area__status"></p>
-                </div>
-
                 <div class="main-area__section">
                     <div class="cache__notice regular-glassmorphism">
                         <img height="75" width="auto" id="happy-dino">
@@ -49,6 +44,7 @@
                     </div>
                     <div class="filters__div">
                         <select id="filter__category" class="regular-glassmorphism">
+                            <option value="all">All Categories</option>
                             <input type="text" id="search__input" placeholder="searchy me projects..." class="search-input regular-glassmorphism">
                         </select>
                         <div class="filter__flags regular-glassmorphism">
@@ -81,6 +77,53 @@
             const slackPfpCache = {};
             const PROJECTS_PER_PAGE = 48;
 
+            function showSkeletonCards(count = 48) {
+                const grid = document.querySelector('.projects-grid');
+                grid.innerHTML = '';
+                for (let i = 0; i < count; i++) {
+                    const card = document.createElement('div');
+                    card.className = 'skeleton-card';
+
+                    const banner = document.createElement('div');
+                    banner.className = 'skeleton skeleton-image';
+                    card.appendChild(banner);
+
+                    const title = document.createElement('div');
+                    title.className = 'skeleton skeleton-title';
+                    card.appendChild(title);
+
+                    const creator = document.createElement('div');
+                    creator.className = 'skeleton skeleton-creator';
+                    card.appendChild(creator);
+
+                    for (let j = 0; j < 7; j++) {
+                        const line = document.createElement('div');
+                        line.className = 'skeleton skeleton-line';
+                        card.appendChild(line);
+                    }
+
+                    const category = document.createElement('div');
+                    category.className = 'skeleton skeleton-category';
+                    card.appendChild(category);
+
+                    const linkDiv = document.createElement('div');
+                    linkDiv.className = 'skeleton-link-div';
+                    card.appendChild(linkDiv);
+
+                    const linkCount = Math.floor(Math.random() * 3);
+                    const possibleWidths = [109, 84, 67];
+                    for (let j = 0; j < linkCount; j++) {
+                        const links = document.createElement('div');
+                        links.className = 'skeleton skeleton-links';
+                        const width = possibleWidths[Math.floor(Math.random() * possibleWidths.length)];
+                        links.style.width = width + 'px';
+                        linkDiv.appendChild(links);
+                    }
+
+                    grid.appendChild(card);
+                }
+            }
+
             document.getElementById('search__input').addEventListener('input', e => {
                 searchQuery = e.target.value.toLowerCase();
                 applyFilters();
@@ -98,15 +141,10 @@
             };
         
             async function fetchPage() {
+                showSkeletonCards();
+
                 const cookie = getToken();
                 const path = "/explore";
-            
-                const statusDiv = document.querySelector('.main-area__status-div');
-                const status = document.getElementById('main-area__status');
-                const statusImage = document.getElementById('main-area__status-image');
-                statusDiv.classList.add('centeredHV');
-                status.innerHTML = "Pending SOM backend request!<br><i>(this usually takes a minute...)</i>";
-                statusImage.src = "/public/orpheus/waaaah_dino.png";
             
                 try {
                     const res = await fetch('/fetch', {
@@ -125,14 +163,11 @@
                 
                     allProjects = projects;
                     filteredProjects = [...allProjects];
-                    statusDiv.remove();
                 
                     populateCategoryDropdown(allProjects);
                     renderProjects();
                 } catch (err) {
-                    statusImage.src = "/public/orpheus/man_face_dino.png";
-                    status.textContent = err.message;
-                    console.error("Error fetching or rendering projects:", err);
+                    alert("Error fetching or rendering projects: " + err.message);
                 }
             }
         

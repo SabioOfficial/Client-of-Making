@@ -42,6 +42,13 @@ const { url } = require('inspector');
 app.use(sendDebugDM);
 
 async function postHourlyCheckpoint() {
+    if (
+        process.env.HOST?.includes('localhost') ||
+        process.env.HOST?.includes('127.0.0.1') ||
+        process.env.NODE_ENV === 'development'
+    ) {
+        return;
+    }
     const now = new Date();
     const nextHour = new Date(now);
     nextHour.setMinutes(0, 0, 0);
@@ -193,8 +200,7 @@ app.post('/fetch', async (req, res) => {
 
                 const title = $el.find('h2.line-clamp-1').text().trim();
 
-                // let imageUrl = $el.find('img.w-full-h.full.object-cover.rounded-xl').attr('src') || null;
-                // imageUrl doesnt wanna work for some reason...
+                let imageUrl = $el.find('img.w-full-h.full.object-cover.rounded-xl').attr('src')?.trim();
 
                 const description = $el
                     .find('p.mb-4.md\\:mb-6.line-clamp-3.text-sm.md\\:text-base.2xl\\:text-lg.text-gray-600')

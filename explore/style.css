@@ -321,3 +321,80 @@ button {
 .main-area__section {
     padding: 0 20px 20px 20px;
 }
+
+.skeleton {
+    background-color: #ddd;
+    border-radius: 8px;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0% {opacity: 1};
+    50% {opacity: 0.4;}
+    100% {opacity: 1;}
+}
+
+.skeleton-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 540px;
+    padding: 20px;
+    box-sizing: border-box;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+}
+
+.skeleton-image {
+    width: 100%;
+    height: 35%;
+    margin-bottom: 15px;
+}
+
+.skeleton-title {
+    width: 70%;
+    height: 39px;
+    margin: 28.8px 0 0 0;
+}
+
+.skeleton-creator {
+    width: 40%;
+    height: 19px;
+    margin-top: 8px;
+    margin-bottom: 25.2px;
+}
+
+.skeleton-line {
+    width: 100%;
+    height: 14px;
+    margin: 4px 0;
+}
+
+.skeleton-category {
+    height: 18px;
+    width: 50%;
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+.skeleton-links {
+    min-width: 16px;
+    width: 40%;
+    padding: 8px 15px;
+    height: 35px;
+}
+
+.skeleton-link-div {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.skeleton-button {
+    width: 100%;
+    height: 45px;
+    margin: 32px 24px 24px 24px;
+    margin-top: auto;
+    border-radius: 8px;
+    border: none;
+}

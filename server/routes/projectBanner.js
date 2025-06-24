@@ -3,9 +3,13 @@ const fetch = require('node-fetch');
 const cheerio = require('cheerio');
 const router = express.Router();
 
+// thanks to Alimad Co for doing this amazing ~scraping~ API, API....
+const BIN_URL = 'https://api.jsonbin.io/v3/b/685add9d8a456b7966b4ee06/latest';
+const BIN_KEY = '$2a$10$B4zVEH/1/wujcr7gMMlHsu0/tQwihEJrtQtOjLX07Ec4eIqINMU1m';
+
 router.get('/project-banner/:id', async (req, res) => {
     const { id } = req.params;
-    const cookie = req.headers.authorization?.replace('Bearer ', '');
+    const index = parseInt(id, 10);
 
     try {
         const response = await fetch(`https://summer.hackclub.com/projects/${id}`, {
