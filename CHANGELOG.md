@@ -2,9 +2,13 @@
 
 All our changes of logging... I meant Client of Making.
 
+## Alpha 2p6.0
+
+In this preview update, we introduced the README.md and CHANGELOG.md files and implemented **skeleton** loading cards to the **explore** _(Alpha 5.0 => 2p6.0)_ and **shopping** _(Alpha 4.0 => 2p6.0)_ pages. We also added a brand new **sidebar animation** for the **shop** icon, **multi-selecting** categories in **shop**, many **quality of life** improvements for the **shop** and partial **mobile** support.
+
 ## Alpha p6.0
 
-In this preview update, we introduced the README.md and CHANGELOG.md files and implemented **skeleton** loading cards to the **explore** _(Alpha 5.0 => 6.0)_ and **shopping** _(Alpha 4.0 => 6.0)_ pages. We also added a brand new **sidebar animation** for the **shop** icon.
+In this preview update, we introduced the README.md and CHANGELOG.md files and implemented **skeleton** loading cards to the **explore** _(Alpha 5.0 => p6.0)_ and **shopping** _(Alpha 4.0 => p6.0)_ pages. We also added a brand new **sidebar animation** for the **shop** icon.
 
 ## Alpha sm5.0
 

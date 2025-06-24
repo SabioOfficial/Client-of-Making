@@ -15,6 +15,10 @@
         <script src="/public/tokenRequired.js"></script>
     </head>
     <body>
+        <script>
+            requireTokenOrRedirect()
+        </script>
+
         <div class="layout-container">
             <div class="sidebar regular-glassmorphism">
                 <div class="sidebar__campfire" onclick="window.location.pathname = '/campfire/'">
@@ -38,11 +42,11 @@
                     <img id="main-area__status-image" width="128" height="auto">
                     <p id="main-area__status"></p>
                 </div>
-
+                
                 <div id="main-area__section" class="main-area__section" style="display: none;">
                     <div class="cache__notice regular-glassmorphism">
                         <img height="75" width="auto" id="happy-dino">
-                        <div style="display: flex; flex-direction: column;">
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
                             <h2>We're doing our part!</h2>
                             <p>We cache your campfire requests for 1 minute to prevent slowing down Summer of Making!</p>
                         </div>
@@ -50,7 +54,7 @@
 
                     <div class="expiration__notice regular-glassmorphism">
                         <img height="75" width="auto" id="nervous-dino">
-                        <div style="display: flex; flex-direction: column;">
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
                             <h2>Remember to devlog!</h2>
                             <p>Hackatime minutes expires after 24 hours without a devlog post, so remember to commit your code and devlog your progress after every work session!</p>
                         </div>

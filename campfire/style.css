@@ -48,8 +48,8 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     align-items: center;
     height: 100dvh;
-    padding: 0 32px;
-    gap: 32px;
+    padding: 0 1.5dvw;
+    gap: 1.5dvw;
 }
 
 .sidebar {
@@ -73,6 +73,10 @@ h1, h2, h3, h4, h5, h6 {
     transform-origin: center center;
     display: block;
     transition: var(--transition);
+}
+
+.sidebar div svg:hover {
+    transform: scale(1.1);
 }
 
 .sidebar__campfire:hover svg path {
@@ -122,7 +126,7 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     justify-items: center;
     gap: 16px;
-    padding: 8px 16px;
+    padding: 16px;
     margin: 16px;
 }
 
@@ -136,7 +140,7 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     justify-items: center;
     gap: 16px;
-    padding: 8px 16px;
+    padding: 16px;
     margin: 16px;
 }
 
@@ -228,4 +232,14 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 10px;
     align-items: center;
     gap: 4px;
+}
+
+@media only screen and (max-width: 480px) {
+    .sidebar {
+        height: 98dvh;
+    }
+
+    .main-area {
+        height: 98dvh;
+    }
 }

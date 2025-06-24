@@ -15,6 +15,10 @@
         <script src="/public/tokenRequired.js"></script>
     </head>
     <body>
+        <script>
+            requireTokenOrRedirect();
+        </script>
+
         <div class="layout-container">
             <div class="sidebar regular-glassmorphism">
                 <div class="sidebar__campfire" onclick="window.location.pathname = '/campfire/'">
@@ -49,9 +53,9 @@
                             <button data-filter="Physical" class="filter-button regular-glassmorphism">Physical</button>
                             <button data-filter="Digital" class="filter-button regular-glassmorphism">Digital</button>
                         </div>
-                        <select id="secondary-filter">
-                            <option value="">All categories</option>
-                        </select>
+                        <div id="secondary-filter">
+                            <button class="secondary-filter-button regular-glassmorphism">All Projects</button>
+                        </div>
                     </div>
 
                     <div class="shop-grid">
@@ -95,7 +99,7 @@
 
             let allItems = [];
             let selectedPrimary = "All";
-            let selectedSecondary = "";
+            let selectedSecondary = [];
 
             const manualOverrides = {
                 "Pile of Stickers": {
@@ -292,19 +296,45 @@
                     categories.forEach(c => allCategories.add(c));
 
                     const matchesPrimary = selectedPrimary === "All" || categories.includes(selectedPrimary);
-                    const matchesSecondary = !selectedSecondary || categories.includes(selectedSecondary);
+                    const matchesSecondary = selectedSecondary.length === 0 || selectedSecondary.some(c => categories.includes(c));
 
                     return matchesPrimary && matchesSecondary;
                 });
 
-                const dropdown = document.getElementById("secondary-filter");
-                dropdown.innerHTML = `<option value="">All categories</option`;
-                [...allCategories].sort().forEach(cat => {
-                    const option = document.createElement("option");
-                    option.value = cat;
-                    option.textContent = cat;
-                    option.selected = cat === selectedSecondary;
-                    dropdown.appendChild(option);
+                const filterDiv = document.getElementById("secondary-filter");
+                filterDiv.innerHTML = "";
+                
+                const categoryCounts = {};
+                allItems.forEach(item => {
+                    const categories = manualOverrides[item.name]?.category?.split(',').map(c => c.trim()) || [];
+                    categories.forEach(cat => {
+                        if (cat === "Physical" || cat === "Digital") return;
+                        categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+                    })
+                });
+
+                Object.keys(categoryCounts).sort().forEach(cat => {
+                    const btn = document.createElement("button");
+                    btn.className = "secondary-filter-button regular-glassmorphism";
+                    btn.dataset.filter = cat;
+                    btn.textContent = cat;
+
+                    if (selectedSecondary.includes(cat)) {
+                        btn.classList.add("selected");
+                    }
+
+                    btn.addEventListener('click', () => {
+                        if (selectedSecondary.includes(cat)) {
+                            selectedSecondary = selectedSecondary.filter(c => c !== cat);
+                            btn.classList.remove("selected");
+                        } else {
+                            selectedSecondary.push(cat);
+                            btn.classList.add("selected");
+                        }
+                        renderItems();
+                    });
+
+                    filterDiv.appendChild(btn);
                 });
 
                 filtered.forEach(item => {
@@ -367,11 +397,6 @@
                     renderItems();
                 });
             });
-
-            document.getElementById('secondary-filter').addEventListener('change', (e) => {
-                selectedSecondary = e.target.value;
-                renderItems();
-            })
 
             fetchPage();
 

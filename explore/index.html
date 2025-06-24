@@ -15,6 +15,10 @@
         <script src="/public/tokenRequired.js"></script>
     </head>
     <body>
+        <script>
+            requireTokenOrRedirect();
+        </script>
+
         <div class="layout-container">
             <div class="sidebar regular-glassmorphism">
                 <div class="sidebar__campfire" onclick="window.location.pathname = '/campfire/'">
