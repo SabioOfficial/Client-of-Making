@@ -38,6 +38,13 @@ button {
     margin-right: auto;
 }
 
+mark {
+    background-color: var(--emphasis);
+    padding: 0 2px;
+    border-radius: 2px;
+    color: var(--text);
+}
+
 .regular-glassmorphism {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 16px;
@@ -155,6 +162,13 @@ button {
     overflow-x: scroll;
 }
 
+.filters-bar {
+    display: flex;
+    flex-direction: row;
+    gap: 32px;
+    padding: 16px 32px;
+}
+
 #filter__category, #sort__option {
     font-family: "National Park", sans-serif;
     font-size: 1em;
@@ -191,7 +205,13 @@ button {
     box-shadow: 0 0 0 3px rgba(74, 45, 36, 0.2);
 }
 
-.search-input {
+#filter__categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+#search__input {
     font-family: "National Park", sans-serif;
     font-size: 1em;
     padding: 10px 14px;
@@ -230,6 +250,162 @@ button {
     display: flex;
     flex-direction: row;
     gap: 4px;
+}
+
+.choices {
+    font-family: 'National Park', sans-serif;
+    font-size: 1em;
+
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+
+    color: #4A2D24;
+
+    margin: 16px 0;
+    max-width: 250px;
+    transition: all 0.3s ease;
+
+    overflow: hidden;
+}
+
+/* Ensure the inner container of the choices box fits */
+.choices__inner {
+    padding: 10px 14px;
+    min-height: auto;
+    background-color: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    border-radius: inherit;
+    overflow: hidden;
+}
+
+/* Style for the actual text input part when typing */
+.choices__input--cloned {
+    font-family: 'National Park', sans-serif;
+    color: #4A2D24;
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    flex-grow: 1;
+    min-width: 50px;
+}
+
+/* Placeholder color */
+.choices__input--cloned::placeholder {
+    color: #4A2D24;
+    opacity: 0.7;
+}
+
+/* --- Selected Tags (Multiple Select) Styling --- */
+.choices__item.choices__item--selectable[data-deletable] {
+    background-color: rgba(74, 45, 36, 0.8);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 2px 0;
+    transition: background-color 0.3s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.choices__item.choices__item--selectable[data-deletable]:hover {
+    background-color: #4A2D24;
+}
+
+/* Style the remove button on selected tags */
+.choices__button {
+    font-size: 0;
+    line-height: 0;
+    overflow: hidden;
+    text-indent: -9999px;
+
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>');
+    background-size: 14px 14px;
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+    border: none;
+    cursor: pointer;
+    margin-left: 4px;
+    padding: 0;
+    background-color: transparent;
+    flex-shrink: 0;
+}
+
+.choices__button:hover {
+    opacity: 1;
+}
+
+/* --- Dropdown List Styling --- */
+.choices__list--dropdown {
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    margin-top: 8px;
+    z-index: 100;
+    overflow: hidden;
+}
+
+/* Individual options within the dropdown */
+.choices__list--dropdown .choices__item {
+    font-family: 'National Park', sans-serif;
+    font-size: 1em;
+    color: #4A2D24;
+    padding: 10px 14px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Hover/highlighted state for options in dropdown */
+.choices__list--dropdown .choices__item--selectable.is-highlighted {
+    background-color: rgba(74, 45, 36, 0.8);
+    color: white;
+}
+
+/* When an item is selected from the dropdown (and then it disappears if multi-select) */
+.choices__list--dropdown .choices__item.is-selected {
+    background-color: rgba(74, 45, 36, 0.6);
+    color: white;
+}
+
+/* For multi-select, hide items in the dropdown that are already selected */
+.choices__list--dropdown .choices__item--choice.is-selected {
+    display: none;
+}
+
+/* Focus state for the main choices box (when clicked/tabbed into) */
+.choices.is-focused {
+    border-color: rgba(255, 255, 255, 0.25); /* Revert to default border color */
+    box-shadow: none; /* Remove box-shadow */
+    outline: none; /* No browser default outline */
+
+    /* Subtle visual cue on focus */
+    backdrop-filter: blur(6px); /* Slightly more blur */
+    -webkit-backdrop-filter: blur(6px);
+    background: rgba(255, 255, 255, 0.15); /* Slightly less transparent background */
+}
+
+/* Hide the original select element as choices.js replaces it visually */
+#filter__categories[hidden] {
+    display: none;
 }
 
 .projects-grid {
@@ -320,6 +496,15 @@ button {
 .project-card__links a:hover {
     background-color: #4A2D24;
     transform: scale(1.05);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+}
+
+.empty-state img {
+    margin-bottom: 16px;
 }
 
 .main-area__section {

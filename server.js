@@ -170,16 +170,13 @@ app.post('/fetch', async (req, res) => {
             };
         } else if (requestedPath === '/explore') {
             try {
-                const exploreResponse = await axios.get('https://summer.hackclub.com/api/v1/projects', {
-                    headers: {
-                        'Cookie': cookie,
-                        'User-Agent': 'Mozilla/5.0',
-                        'Accept': 'application/json'
-                    }
-                });
+                const exploreResponse = await axios.get(`https://somps.vercel.app/api/projects`);
 
-                let projects = exploreResponse.data;
-                const projectTitles = projects.map(project => project.name || project.title || 'Untitled');
+                const rawData = exploreResponse.data;
+
+                const projects = Object.values(rawData);
+
+                const projectTitles = projects.map(project => project.title || project.name || 'Untitled');
 
                 apiResponseData.extractedData = {
                     projectTitles,

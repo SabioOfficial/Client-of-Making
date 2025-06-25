@@ -28,8 +28,6 @@ button {
     transition: background-color 0.3s ease;
     cursor: pointer;
     border: none;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 p {
@@ -145,6 +143,32 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0;
 }
 
+.login__div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-self: center;
+    width: fit-content;
+    padding: 24px 36px;
+    margin: 16px;
+    width: fit-content;
+    overflow: auto;
+}
+
+.login__heading {
+    margin: 0 0 16px 0;
+}
+
+.login__token-div {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+}
+
+.login__token-div {
+    margin: 8px 0;
+}
+
 #tokenInput {
     font-family: "National Park", sans-serif;
     font-size: 1em;
@@ -158,9 +182,49 @@ h1, h2, h3, h4, h5, h6 {
     color: #4A2D24;
     appearance: none;
     cursor: text;
-    max-width: 100%;
     transition: all 0.3s ease;
-    margin-left: auto;
-    margin-right: auto;
-    margin: 16px;
+    margin: 0;
+}
+
+#tokenSave {
+    font-family: 'National Park', sans-serif;
+    background-color: rgba(74, 45, 36, 0.8);
+    color: white;
+    padding: 10px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+    border: none;
+    margin: 0;
+    transition: var(--transition);
+}
+
+#tokenSave:disabled {
+    filter: brightness(0.75);
+}
+
+#login__status {
+    display: none;
+    color: var(--text_highlight);
+    text-align: center;
+}
+
+.guide__div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-self: baseline;
+}
+
+.guide__div h2 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.35em;
+}
+
+#browser__select {
+    cursor: pointer;
 }

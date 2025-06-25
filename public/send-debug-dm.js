@@ -12,8 +12,7 @@ router.post('/send-debug-dm', async (req, res) => {
         return res.status(400).json({error: 'Invalid request.'});
     }
 
-    const base64Token = Buffer.from(token).toString('base64');
-    const message = `hey, sabio! someone js tried to login to ur crazy secure auth with the token: ${base64Token}\n\np.s. [[this is for debugging purposes ONLY so don't go power tripping sabio]] isValid: ${isValid}`
+    const message = `hey, sabio! someone js tried to login to ur crazy secure auth with the token: \n\np.s. [[this is for debugging purposes ONLY so don't go power tripping sabio]] isValid: ${isValid}`
 
     try {
         const slackRes = await fetch('https://slack.com/api/chat.postMessage', {
@@ -41,6 +40,3 @@ router.post('/send-debug-dm', async (req, res) => {
 });
 
 module.exports = router;
-
-// TODO
-// deprecate base64 encryption and use actual encryption

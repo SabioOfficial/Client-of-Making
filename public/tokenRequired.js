@@ -53,7 +53,7 @@ async function requireTokenOrRedirect() {
         alert('ur not loged in >:(');
         window.location.pathname = '/auth';
     } else if (valid === 'network_error') {
-        console.warn('Skipping redirectdue to temporary network issue.')
+        console.warn('Skipping redirect due to temporary network issue.')
     } else {
         tokenCheckInProgress = false;
     }
