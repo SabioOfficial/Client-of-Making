@@ -79,7 +79,7 @@ app.post('/fetch', async (req, res) => {
     if (!allowedPaths.has(requestedPath)) return res.status(403).send('Forbidden path');
 
     const effectiveCacheLifetime = PATH_CACHE_LIFETIMES[requestedPath] || DEFAULT_CACHE_LIFETIME_MS;
-    const cacheEntry = cache.get(requestedPath);
+    let cacheEntry = cache.get(requestedPath);
 
     if (userScopedPaths.has(requestedPath)) {
         cacheEntry = null;
