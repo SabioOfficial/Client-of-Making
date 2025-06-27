@@ -38,6 +38,15 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 500;
 }
 
+a {
+    color: var(--text_highlight);
+    transition: var(--transition);
+}
+
+a:hover {
+    font-size: 17px;
+}
+
 .heading {
     padding: 0 20px;
 }
@@ -88,6 +97,14 @@ h1, h2, h3, h4, h5, h6 {
     transition: var(--transition);
 }
 
+.sidebar div svg {
+    transition: var(--transition);
+}
+
+.sidebar div svg:hover {
+    transform: scale(1.1);
+}
+
 .sidebar__campfire:hover svg path {
     animation: campfire-flicker 0.5s infinite alternate ease;
 }
@@ -103,6 +120,21 @@ h1, h2, h3, h4, h5, h6 {
 
 .sidebar__explore:hover svg path {
     transform: rotate(180deg);
+}
+
+.sidebar__shop:hover svg path {
+    -moz-transform: scaleX(-1);
+    -o-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+    filter: FlipH;
+    -ms-filter: "FlipH";
+}
+
+.sidebar__votes:hover svg path {
+    transform: skewX(-8deg) scaleY(1.06) scaleX(1.02);
+    filter: brightness(1.08) drop-shadow(0 1px 2px rgba(0,0,0,0.10));
+    opacity: 0.92;
 }
 
 .main-area {
@@ -186,6 +218,10 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0;
 }
 
+#tokenInput:focus, #tokenInput:active {
+    outline: none !important;
+}
+
 #tokenSave {
     font-family: 'National Park', sans-serif;
     background-color: rgba(74, 45, 36, 0.8);
@@ -199,6 +235,11 @@ h1, h2, h3, h4, h5, h6 {
     border: none;
     margin: 0;
     transition: var(--transition);
+}
+
+#tokenSave:hover {
+    transform: scale(1.05);
+    filter: brightness(0.875);
 }
 
 #tokenSave:disabled {
@@ -227,4 +268,50 @@ h1, h2, h3, h4, h5, h6 {
 
 #browser__select {
     cursor: pointer;
+    transition: var(--transition);
+}
+
+#browser__select:hover {
+    filter: brightness(0.95);
+    transform: scale(1.05);
+}
+
+#browser__select:hover span {
+    padding-right: 24px;
+    padding-left: 24px;
+}
+
+#browser__select:hover span::after {
+    opacity: 1;
+    right: 0;
+}
+
+#browser__select:hover span::before {
+    opacity: 1;
+    left: 0;
+}
+
+#browser__select span {
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+    transition: var(--transition);
+}
+
+#browser__select span::after {
+    content: '\003C';
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    right: -20px;
+    transition: var(--transition);
+}
+
+#browser__select span::before {
+    content: '\003E';
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    left: -20px;
+    transition: var(--transition);
 }

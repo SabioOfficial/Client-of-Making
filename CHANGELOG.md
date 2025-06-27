@@ -2,6 +2,10 @@
 
 All our changes of logging... I meant Client of Making.
 
+## Alpha 6.0
+
+In this preview update, we introduced the README.md and CHANGELOG.md files and implemented **skeleton** loading cards to the **explore** _(Alpha 5.0 => 6.0)_ and **shopping** _(Alpha 4.0 => 6.0)_ pages, added a brand new **sidebar animation** for the **shop** icon, **multi-selecting** categories in **shop**, many **quality of life** improvements for the **shop** and partial **mobile** support. We also revamped the **authentication** page _(Alpha 4.0 => 6.0)_, added a token **guide** and switched to **Alimad Co's** SOMPS API. Added huge improvements to **explore**. We also added the **Votes** _(Alpha 6.0)_ page.
+
 ## Alpha 3p6.0
 
 In this preview update, we introduced the README.md and CHANGELOG.md files and implemented **skeleton** loading cards to the **explore** _(Alpha 5.0 => 3p6.0)_ and **shopping** _(Alpha 4.0 => 3p6.0)_ pages, added a brand new **sidebar animation** for the **shop** icon, **multi-selecting** categories in **shop**, many **quality of life** improvements for the **shop** and partial **mobile** support. We also revamped the **authentication** page _(Alpha 4.0 => 3p6.0)_, added a token **guide** and switched to **Alimad Co's** SOMPS API. Added huge improvements to **explore**.

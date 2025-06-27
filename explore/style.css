@@ -91,6 +91,10 @@ mark {
     transition: var(--transition);
 }
 
+.sidebar div svg {
+    transition: var(--transition);
+}
+
 .sidebar div svg:hover {
     transform: scale(1.1);
 }
@@ -110,6 +114,21 @@ mark {
 
 .sidebar__explore:hover svg path {
     transform: rotate(180deg);
+}
+
+.sidebar__shop:hover svg path {
+    -moz-transform: scaleX(-1);
+    -o-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+    filter: FlipH;
+    -ms-filter: "FlipH";
+}
+
+.sidebar__votes:hover svg path {
+    transform: skewX(-8deg) scaleY(1.06) scaleX(1.02);
+    filter: brightness(1.08) drop-shadow(0 1px 2px rgba(0,0,0,0.10));
+    opacity: 0.92;
 }
 
 .main-area {
@@ -154,6 +173,10 @@ mark {
     margin: 0;
 }
 
+.filter-group > label {
+    margin-right: 8px;
+}
+
 .filters__div {
     display: flex;
     flex-direction: row;
@@ -167,6 +190,16 @@ mark {
     flex-direction: row;
     gap: 32px;
     padding: 16px 32px;
+    flex-wrap: wrap;
+    margin: 16px;
+}
+
+@media (max-width: 700px) {
+    .filters-bar {
+        flex-direction: column;
+        gap: 16px;
+        padding: 16px;
+    }
 }
 
 #filter__category, #sort__option {
@@ -252,27 +285,58 @@ mark {
     gap: 4px;
 }
 
+#sort-refresh {
+    margin: 16px 0 16px 8px;
+    height: 100%;
+    padding: 10px 14px;
+}
+
 .choices {
     font-family: 'National Park', sans-serif;
     font-size: 1em;
-
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
     border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.18);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-
+    border: 1px solid rgba(255, 255, 255, 0.3);
     color: #4A2D24;
-
     margin: 16px 0;
-    max-width: 250px;
+    max-width: 325px;
+    width: 100%;
+    min-width: 0;
     transition: all 0.3s ease;
-
     overflow: hidden;
+    box-sizing: border-box;
 }
 
-/* Ensure the inner container of the choices box fits */
+.category-filter-group {
+    min-width: 250px;
+}
+
+@media (max-width: 768px) {
+    .choices {
+        width: 100%;
+        max-width: none;
+        font-size: 0.95em;
+    }
+
+    .category-filter-group {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .choices__inner {
+        padding: 8px 12px;
+    }
+
+    .choices__item.choices__item--selectable[data-deletable] {
+        font-size: 0.8em;
+        padding: 5px 8px;
+    }
+}
+
+
 .choices__inner {
     padding: 10px 14px;
     min-height: auto;
@@ -287,7 +351,6 @@ mark {
     overflow: hidden;
 }
 
-/* Style for the actual text input part when typing */
 .choices__input--cloned {
     font-family: 'National Park', sans-serif;
     color: #4A2D24;
@@ -299,13 +362,11 @@ mark {
     min-width: 50px;
 }
 
-/* Placeholder color */
 .choices__input--cloned::placeholder {
-    color: #4A2D24;
-    opacity: 0.7;
+    color: rgba(74, 45, 36, 0.8);
+    opacity: 1;
 }
 
-/* --- Selected Tags (Multiple Select) Styling --- */
 .choices__item.choices__item--selectable[data-deletable] {
     background-color: rgba(74, 45, 36, 0.8);
     color: white;
@@ -327,19 +388,17 @@ mark {
     background-color: #4A2D24;
 }
 
-/* Style the remove button on selected tags */
 .choices__button {
     font-size: 0;
     line-height: 0;
     overflow: hidden;
     text-indent: -9999px;
-
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>');
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>');
     background-size: 14px 14px;
     width: 14px;
     height: 14px;
     opacity: 0.7;
-    transition: opacity 0.2s ease;
+    transition: var(--transition);
     border: none;
     cursor: pointer;
     margin-left: 4px;
@@ -350,9 +409,9 @@ mark {
 
 .choices__button:hover {
     opacity: 1;
+    transform: scale(1.05);
 }
 
-/* --- Dropdown List Styling --- */
 .choices__list--dropdown {
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.25);
@@ -365,47 +424,44 @@ mark {
     overflow: hidden;
 }
 
-/* Individual options within the dropdown */
 .choices__list--dropdown .choices__item {
     font-family: 'National Park', sans-serif;
     font-size: 1em;
     color: #4A2D24;
     padding: 10px 14px;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: var(--transition);
 }
 
-/* Hover/highlighted state for options in dropdown */
 .choices__list--dropdown .choices__item--selectable.is-highlighted {
     background-color: rgba(74, 45, 36, 0.8);
     color: white;
 }
 
-/* When an item is selected from the dropdown (and then it disappears if multi-select) */
 .choices__list--dropdown .choices__item.is-selected {
     background-color: rgba(74, 45, 36, 0.6);
     color: white;
 }
 
-/* For multi-select, hide items in the dropdown that are already selected */
 .choices__list--dropdown .choices__item--choice.is-selected {
     display: none;
 }
 
-/* Focus state for the main choices box (when clicked/tabbed into) */
 .choices.is-focused {
-    border-color: rgba(255, 255, 255, 0.25); /* Revert to default border color */
-    box-shadow: none; /* Remove box-shadow */
-    outline: none; /* No browser default outline */
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: none;
+    outline: none;
 
-    /* Subtle visual cue on focus */
-    backdrop-filter: blur(6px); /* Slightly more blur */
+    backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
-    background: rgba(255, 255, 255, 0.15); /* Slightly less transparent background */
+    background: rgba(255, 255, 255, 0.15);
 }
 
-/* Hide the original select element as choices.js replaces it visually */
 #filter__categories[hidden] {
     display: none;
+}
+
+.choices__item.choices__item--selectable[data-deletable] {
+    margin-right: 8px;
 }
 
 .projects-grid {
@@ -432,12 +488,69 @@ mark {
     filter: brightness(1.05);
 }
 
+.project-card__copy {
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.project-card:hover .project-card__copy {
+    animation: fadeInCopy 0.3s forwards;
+    opacity: 1;
+}
+
+.project-card:not(:hover) .project-card__copy {
+    animation: fadeOutCopy 0.3s forwards;
+    opacity: 0;
+}
+
+.project-card__copy:hover {
+    transform: scale(1.15);
+}
+
+.project-card__copy:active {
+    transform: scale(0.6);
+}
+
+@keyframes fadeInCopy {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOutCopy {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.copy-toast {
+    color: var(--text);
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    opacity: 0;
+    animation: fade-in-out 1.5s ease forwards;
+    z-index: 10;
+    pointer-events: none;
+}
+
+@keyframes fade-in-out {
+    0% { opacity: 0; transform: translateY(-5px); }
+    20% { opacity: 1; transform: translateY(0); }
+    80% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-5px); }
+}
+
 .project-card__banner {
     width: 100%;
     height: 180px;
     object-fit: cover;
     border-radius: 10px;
     margin-bottom: 15px;
+    transition: var(--transition);
+}
+
+.project-card__banner:hover {
+    transform: scale(1.05);
 }
 
 .project-card__title {
@@ -470,10 +583,10 @@ mark {
     flex-direction: row;
     font-size: 0.85em;
     color: #777;
-    margin-top: auto;
+    margin-top: 10px;
     margin-bottom: 10px;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
 }
 
 .project-card__links {
@@ -509,6 +622,15 @@ mark {
 
 .main-area__section {
     padding: 0 20px 20px 20px;
+}
+
+.load-more-btn .load-more-spinner > svg {
+    animation: spin 1s ease infinite;
+}
+
+@keyframes spin {
+    0% {transform: rotate(0deg);}
+    100% {transform: rotate(360deg);}
 }
 
 .skeleton {

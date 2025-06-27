@@ -75,6 +75,10 @@ h1, h2, h3, h4, h5, h6 {
     transition: var(--transition);
 }
 
+.sidebar div svg {
+    transition: var(--transition);
+}
+
 .sidebar div svg:hover {
     transform: scale(1.1);
 }
@@ -94,6 +98,21 @@ h1, h2, h3, h4, h5, h6 {
 
 .sidebar__explore:hover svg path {
     transform: rotate(180deg);
+}
+
+.sidebar__shop:hover svg path {
+    -moz-transform: scaleX(-1);
+    -o-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+    filter: FlipH;
+    -ms-filter: "FlipH";
+}
+
+.sidebar__votes:hover svg path {
+    transform: skewX(-8deg) scaleY(1.06) scaleX(1.02);
+    filter: brightness(1.08) drop-shadow(0 1px 2px rgba(0,0,0,0.10));
+    opacity: 0.92;
 }
 
 .main-area {
@@ -242,4 +261,59 @@ h1, h2, h3, h4, h5, h6 {
     .main-area {
         height: 98dvh;
     }
+}
+
+.skeleton {
+    background-color: #ddd;
+    border-radius: 8px;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0% {opacity: 1};
+    50% {opacity: 0.4;}
+    100% {opacity: 1;}
+}
+
+.skeleton-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 350px;
+    padding: 20px;
+    box-sizing: border-box;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+}
+
+.skeleton-image {
+    width: 100%;
+    height: 35%;
+    margin-bottom: 15px;
+}
+
+.skeleton-title {
+    width: 70%;
+    height: 39px;
+    margin: 28.8px 0 0 0;
+}
+
+.skeleton-creator {
+    width: 40%;
+    height: 19px;
+    margin-top: 8px;
+    margin-bottom: 25.2px;
+}
+
+.skeleton-line {
+    width: 100%;
+    height: 14px;
+    margin: 4px 0;
+}
+
+.skeleton-info {
+    height: 18px;
+    width: 50%;
+    margin-top: 10px;
+    margin-bottom: 15px;
 }

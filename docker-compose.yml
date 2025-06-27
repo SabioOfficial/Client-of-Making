@@ -9,3 +9,11 @@ services:
       - PORT=4000
     volumes:
       - .:/app
+    develop:
+      watch:
+        - action: sync+restart
+          path: ../server.js
+          target: /server.js
+        - action: sync
+          path: ../
+          target: /

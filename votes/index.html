@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="icon" type="image/x-icon" href="/public/favicon.ico">
-        <title>CoM - Campfire</title>
+        <title>CoM - Votes</title>
 
         <link rel="stylesheet" href="/public/style.css">
         <link rel="stylesheet" href="style.css">
@@ -17,7 +17,7 @@
     </head>
     <body>
         <script>
-            requireTokenOrRedirect()
+            requireTokenOrRedirect();
         </script>
 
         <div class="layout-container">
@@ -43,183 +43,77 @@
                     </svg>
                 </div>
             </div>
-            <div class="main-area regular-glassmorphism">   
+            <div class="main-area regular-glassmorphism">
                 <div id="main-area__section" class="main-area__section">
                     <div class="cache__notice regular-glassmorphism">
                         <img height="75" width="auto" id="happy-dino">
-                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; flex-direction: column;">
                             <h2>We're doing our part!</h2>
-                            <p>We cache your campfire requests for 1 minute to prevent slowing down Summer of Making!</p>
+                            <p>We cache your campfire requests for 30 minutes to prevent slowing down Summer of Making!</p>
                         </div>
                     </div>
 
-                    <div class="expiration__notice regular-glassmorphism">
-                        <img height="75" width="auto" id="nervous-dino">
-                        <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <h2>Remember to devlog!</h2>
-                            <p>Hackatime minutes expires after 24 hours without a devlog post, so remember to commit your code and devlog your progress after every work session!</p>
-                        </div>
-                    </div>
+                    <h2 class="heading">Votes</h2>
 
-                    <h2 class="heading">Hackatime Dashboard</h2>
-
-                    <div class="today-coding-time__div regular-glassmorphism">
-                        <h3>Today, you've been coding for</h3>
-                        <h2 id="today-coding-time__display">0h 0m</h2>
-                        <p id="roast-display">It's time to take a shower.</p>
-                    </div>
-
-                    <div class="total-coding-time__div regular-glassmorphism">
-                        <h3>In total, you've been coding for</h3>
-                        <h2 id="total-coding-time__display">0h 0m</h2>
-                        <p id="roast-display-2">It's time to take a shower.</p>
-                    </div>
-
-                    <h2 id="project-count" class="heading">Your Projects (0)</h2>
-
-                    <div class="projects-grid">
-
+                    <div class="approved__div regular-glassmorphism">
+                        <h3>There's been...</h3>
+                        <h2 id="approved__display">0 / 100 Quality Projects</h2>
+                        <p id="certified__display">and 0 Certified Projects.</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <script>
-            let allProjects = [];
-            let todayTime;
-            let totalTime;
-            const projectCount = document.getElementById('project-count');
+            let votes = [];
 
-            function showSkeletonCampfire() {
-                document.getElementById('today-coding-time__display').textContent = '';
-                document.getElementById('total-coding-time__display').textContent = '';
-                document.getElementById('today-coding-time__display').classList.add('skeleton', 'skeleton-title');
-                document.getElementById('total-coding-time__display').classList.add('skeleton', 'skeleton-title');
-                const grid = document.querySelector('.projects-grid');
-                grid.innerHTML = '';
-                for (let i = 0; i < 3; i++) {
-                    const card = document.createElement('div');
-                    card.className = 'skeleton-card';
-                    const banner = document.createElement('div');
-                    banner.className = 'skeleton skeleton-image';
-                    card.appendChild(banner);
-                    const title = document.createElement('div');
-                    title.className = 'skeleton skeleton-title';
-                    card.appendChild(title);
-                    const desc = document.createElement('div');
-                    desc.className = 'skeleton skeleton-line';
-                    card.appendChild(desc)
-                    const info = document.createElement('div');
-                    info.className = 'skeleton skeleton-info';
-                    card.appendChild(info);
-                    grid.appendChild(card);
-                }
+            function showSkeleton() {
+                document.getElementById('approved__display').textContent = '';
+                document.getElementById('certified__display').textContent = '';
+                document.getElementById('approved__display').classList.add('skeleton', 'skeleton-title');
+                document.getElementById('certified__display').classList.add('skeleton', 'skeleton-line');
             }
 
             async function fetchPage() {
-                showSkeletonCampfire();
+                showSkeleton();
+
                 const cookie = getToken();
-                const campfirePath = "/campfire";
-                const projectsPath = "/my_projects";
+                const votePath = "/votes/locked";
 
                 try {
-                    const campfireRes = await fetch('/fetch', {
+                    const voteRes = await fetch('/fetch', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({cookie, path: campfirePath})
+                        body: JSON.stringify({cookie, path: votePath})
                     });
 
-                    const campfireText = await campfireRes.text();
-                    let campfireData;
+                    const voteText = await voteRes.text();
+                    console.log("Raw voteText:", voteText);
+                    let voteData;
                     try {
-                        const parsed = JSON.parse(campfireText);
-                        campfireData = parsed?.extractedData;
+                        const parsed = JSON.parse(voteText);
+                        voteData = parsed?.extractedData;
                     } catch (e) {
-                        throw new Error("Invalid JSON response from backend (/campfire).");
+                        throw new Error("Invalid JSON rsponse from backend (/votes)")
                     }
 
-                    todayTime = campfireData?.todayCodingTime?.trim();
-                    totalTime = campfireData?.totalCodingTime?.trim();
+                    votes = voteData.votes || [];
 
-                    if (!todayTime) {
-                        throw new Error("Your token seems to be corrupted! Please restart the authentication process at /auth/");
-                    }
+                    document.getElementById('approved__display').classList.remove('skeleton', 'skeleton-title');
+                    document.getElementById('certified__display').classList.remove('skeleton', 'skeleton-line');
 
-                    const projectsRes = await fetch('/fetch', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({cookie, path: projectsPath})
-                    });
-
-                    const projectsText = await projectsRes.text();
-                    console.log("raw /my_projects response", projectsText)
-                    
-                    let projectsData;
-                    try {
-                        const parsed = JSON.parse(projectsText);
-                        projectsData = parsed.extractedData?.yourProjects || [];
-                    } catch (e) {
-                        throw new Error("Invalid JSON response from backend (/my_projects).");
-                    }
-
-                    allProjects = projectsData;
-
-                    projectCount.textContent = `Your Projects (${allProjects.length})`;
-                    document.getElementById('today-coding-time__display').classList.remove('skeleton', 'skeleton-title');
-                    document.getElementById('total-coding-time__display').classList.remove('skeleton', 'skeleton-title');
-                    document.getElementById('today-coding-time__display').textContent = todayTime;
-                    document.getElementById('total-coding-time__display').textContent = totalTime;
-
-                    renderProjects()
+                    renderVotes();
                 } catch (err) {
-                    console.error(err.message);
+                    alert(err.message);
                 }
             }
 
-            function renderProjects() {
-                const grid = document.querySelector(".projects-grid");
-                grid.innerHTML = "";
-
-                allProjects.forEach(proj => {
-                    const card = document.createElement("div");
-                    card.className = "project-card regular-glassmorphism";
-
-                    const banner = document.createElement('img');
-                    banner.classList.add('project-card__banner');
-                    const fallback = "/public/banner-placeholder.png";
-                    banner.src = fallback;
-                    card.appendChild(banner);
-
-                    const title = document.createElement("h3");
-                    title.className = "project-card__title";
-                    title.textContent = proj.title;
-                    card.appendChild(title);
-
-                    const desc = document.createElement("p");
-                    desc.className = "project-card__description";
-                    desc.textContent = proj.description;
-                    card.appendChild(desc);
-
-                    const info = document.createElement("p");
-                    info.className = "project-card__extra";
-                    info.textContent = `${proj.codingTime} - ${proj.devlogCount}`;
-                    card.appendChild(info);
-
-                    grid.appendChild(card);
-                });
+            function renderVotes() {
+                const approvedDisplay = document.getElementById('approved__display');
+                const certifiedDisplay = document.getElementById('certified__display');
+                approvedDisplay.textContent = votes[0]?.approved + " / 100 Quality Projects" || "Error";
+                certifiedDisplay.textContent = "and " + votes[0]?.certified + " Certified Projects" || "Error";
             }
-
-            async function fetchHackatimeComparison(userId) {
-                try {
-                    const [todayRes, yesterdayRes] = await Promise.all([
-
-                    ])
-                } catch (err) {
-                    console.error('Failed to fetch Hackatime comparison:', err)
-                }
-            }
-
-            fetchPage();
 
             const happyDinoImages = [
                 '/public/orpheus/party_dino.gif',
@@ -230,40 +124,7 @@
             const randomIndex = Math.floor(Math.random() * happyDinoImages.length);
             document.getElementById('happy-dino').src = happyDinoImages[randomIndex];
 
-            const nervousDinoImages = [
-                '/public/orpheus/nervous_dino.gif',
-                '/public/orpheus/oopheus.png',
-                '/public/orpheus/waaaah_dino.png',
-                '/public/orpheus/man_face_dino.png',
-                '/public/orpheus/ugh.png'
-            ];
-            const randomNervousDinoIndex = Math.floor(Math.random() * nervousDinoImages.length);
-            document.getElementById('nervous-dino').src = nervousDinoImages[randomIndex];
-
-            const roasts = [
-                "Start coding now. Actually, please don't, I don't need more competition.",
-                "It's time to go outside.",
-                "It's time to take a shower.",
-                "The lock in is massive. Do you want to know what else is massive?",
-                "Touch some grass. Please.",
-                "It's time to get some deoderant.",
-                "Don't macro.",
-                "You might feel like you can get away with macroing, but you can't.",
-                "Doesn't grass feel nice? Ever felt it?",
-                "Get a j*b, mate.",
-                "Get a life, dude.",
-                "It smells like a dumpster in here! Take a shower!",
-                "What? You realised you haven't taken a shower since 420 BC? Yeah, go take it now."
-            ];
-
-            const randomRoastIndex = Math.floor(Math.random() * roasts.length);
-            let randomRoastIndex2;
-            do {
-                randomRoastIndex2 = Math.floor(Math.random() * roasts.length);
-            } while (randomRoastIndex2 === randomRoastIndex && roasts.length > 1);
-
-            document.getElementById('roast-display').textContent = roasts[randomRoastIndex];
-            document.getElementById('roast-display-2').textContent = roasts[randomRoastIndex2];
+            fetchPage();
         </script>
     </body>
 </html>

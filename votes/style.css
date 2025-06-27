@@ -25,6 +25,11 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 500;
 }
 
+button {
+    font-family: 'National Park', sans-serif;
+    color: var(--text);
+}
+
 .heading {
     padding: 0 20px;
 }
@@ -36,14 +41,6 @@ h1, h2, h3, h4, h5, h6 {
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(5px);
     border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.centeredHV {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 24px 32px;
 }
 
 .layout-container {
@@ -111,6 +108,12 @@ h1, h2, h3, h4, h5, h6 {
     -ms-filter: "FlipH";
 }
 
+.sidebar__votes:hover svg path {
+    transform: skewX(-8deg) scaleY(1.06) scaleX(1.02);
+    filter: brightness(1.08) drop-shadow(0 1px 2px rgba(0,0,0,0.10));
+    opacity: 0.92;
+}
+
 .main-area {
     flex: 1;
     height: 90dvh;
@@ -123,40 +126,63 @@ h1, h2, h3, h4, h5, h6 {
     flex-direction: column;
 }
 
-.main-area__section * {
+.cache__notice {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-items: center;
+    gap: 16px;
+    padding: 16px;
+    margin: 16px;
+}
+
+.cache__notice * {
     margin: 0;
 }
 
-.main-area__section h1 {
-    margin-bottom: 8px;
-}
-
-.main-area__section p {
-    margin-top: 8px;
-}
-
-button {
-    font-family: 'National Park', sans-serif;
-    background-color: rgba(74, 45, 36, 0.8);
-    color: white;
-    padding: 8px 15px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 0.9em;
-    transition: var(--transition);
-    cursor: pointer;
-    border: none;
-
+.category-filter-bar {
     display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
-    gap: 8px;
-
-    text-align: center;
+    margin: 16px;
 }
 
-.log-in__container {
-    display: flex;
-    justify-content: center;
+.approved__div {
+    padding: 16px 24px !important;
+    padding: 8px 16px;
+    margin: 16px;
+}
 
-    margin-top: 16px;
+.approved__div * {
+    margin: 0;
+}
+
+.approved__div h2 {
+    font-size: 2.5rem;
+    margin: 8px 0;
+}
+
+.skeleton {
+    background-color: #ddd;
+    border-radius: 8px;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0% {opacity: 1};
+    50% {opacity: 0.4;}
+    100% {opacity: 1;}
+}
+
+.skeleton-title {
+    width: 70%;
+    height: 39px;
+    margin: 28.8px 0 0 0;
+}
+
+.skeleton-line {
+    width: 100%;
+    height: 14px;
+    margin: 4px 0;
 }
