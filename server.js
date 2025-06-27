@@ -73,6 +73,35 @@ app.get('/projects/:id', (req, res) => {
     res.sendFile(path.join(__dirname, 'project.html'));
 });
 
+app.post('/api/proxy-search', async (req, res) => {
+    const { query } = req.body;
+    const token = process.env.SEARCH_API_TOKEN;
+
+    if (!query) return res.status(400).json({ error: 'Missing query' });
+
+    const url = `https://somps.vercel.app/api/search?q=${encodeURIComponent(query)}`;
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        const text = await response.text();
+
+        if (!response.ok) {
+            return res.status(response.status).json({ error: `Search API failed with status ${response.status}` });
+        }
+
+        const data = JSON.parse(text);
+        res.json(data);
+    } catch (err) {
+        console.error('Proxy search error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 app.post('/fetch', async (req, res) => {
     const { cookie, path: requestedPath } = req.body;
     if (!cookie || !requestedPath) return res.status(400).send('Missing cookie or path');

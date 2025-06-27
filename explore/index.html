@@ -107,6 +107,7 @@
             let currentOffset = 0;
             let searchQuery = '';
             let categoryChoices;
+            let debounceTimer = null;
             const slackNameCache = {};
             const slackPfpCache = {};
             const PROJECTS_PER_PAGE = 48;
@@ -160,8 +161,53 @@
 
             document.getElementById('search__input').addEventListener('input', e => {
                 searchQuery = e.target.value.toLowerCase();
-                applyFilters();
+
+                if (debounceTimer) clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    handleSearchQuery(searchQuery);
+                }, 400);
             });
+
+            async function handleSearchQuery(query) {
+                showSkeletonCards();
+
+                try {
+                    const res = await fetch('/api/proxy-search', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({query: searchQuery})
+                    });
+
+                    if (!res.ok) throw new Error(`Search failed (HTTP ${res.status})`);
+                    const data = await res.json();
+
+                    allProjects = data.results.map(p => ({
+                        id: p.id,
+                        title: p.title,
+                        description: p.description,
+                        category: p.category,
+                        repo_link: p.repo_link,
+                        demo_link: p.demo_link,
+                        readme_link: p.readme_link,
+                        creator_name: p.author,
+                        author_pfp: p.author_pfp,
+                        _bannerUrl: `https://summer.hackclub.com` + p.imageUrl || null,
+                        created_at: p.created_at,
+                        updated_at: p.updated_at,
+                        devlogs: p.devlogs,
+                        time: p.time
+                    }));
+
+                    filteredProjects = [...allProjects];
+                    populateCategoryFilters(allProjects);
+                    renderProjects();
+                } catch (err) {
+                    console.error('Search error: ', err.message);
+                    showToast(`Search failed: ${err.message}`);
+                }
+            }
 
             document.getElementById('sort__option').addEventListener('change', applyFilters);
         
