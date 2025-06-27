@@ -34,6 +34,8 @@ const PATH_CACHE_LIFETIMES = {
     '/shop': 30 * 60 * 1000
 };
 
+const userScopedPaths = new Set(['/campfire', '/my_projects']);
+
 // slack user route with simpel cache
 const slackCache = new Map();
 const SLACK_CACHE_DURATION = 60 * 60 * 1000; // 1 hr omg
@@ -78,6 +80,10 @@ app.post('/fetch', async (req, res) => {
 
     const effectiveCacheLifetime = PATH_CACHE_LIFETIMES[requestedPath] || DEFAULT_CACHE_LIFETIME_MS;
     const cacheEntry = cache.get(requestedPath);
+
+    if (userScopedPaths.has(requestedPath)) {
+        cacheEntry = null;
+    }
 
     if (cacheEntry && Date.now() - cacheEntry.timestamp < effectiveCacheLifetime) {
         return res.send(cacheEntry.data);
