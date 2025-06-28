@@ -58,6 +58,7 @@
                             <button data-filter="All" class="filter-button regular-glassmorphism selected">All</button>
                             <button data-filter="Physical" class="filter-button regular-glassmorphism">Physical</button>
                             <button data-filter="Digital" class="filter-button regular-glassmorphism">Digital</button>
+                            <button data-filter="Custom" class="filter-button regular-glassmorphism">Custom</button>
                         </div>
                         <div id="secondary-filter">
                             <button class="secondary-filter-button regular-glassmorphism">All Projects</button>
@@ -319,16 +320,19 @@
                 grid.innerHTML = "";
 
                 if (isEditor) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+
                     const maker = document.createElement('div');
-                    maker.className = 'item-maker';
+                    maker.className = 'item-card regular-glassmorphism';
                     maker.innerHTML = `
-                        <h2>sabio's cool item maker</h2>
-                        <input id="fake-name" placeholder="what's the item???????"/>
-                        <input id="fake-desc" placeholder="yap about the item!"/>
-                        <input id="fake-price" type="number" placeholder="pricey pricing"/>
-                        <input id="fake-image" placeholder="image url"/>
-                        <button id="add-fake">Add Item</button>
-                        <hr/>
+                        <input id="fake-name" class="item-card__title" placeholder="what's the item???????"/>
+                        <input id="fake-desc" class="item-card__description" placeholder="yap about the item!"/>
+                        <input id="fake-image" class="item-card__image" placeholder="image url (go to #cdn on HC's slack)"/>
+                        <div class="item-card__actions">
+                            <img id="fake-shell" src="/public/shell.avif" width="16" height="auto"/>
+                            <input id="fake-price" type="number" value="0" min="0" max="10000" placeholder="price :3"/>
+                            <button id="add-fake" class="regular-glassmorphism">Add Item</button>
+                        </div>
                     `;
                     grid.appendChild(maker);
 
@@ -340,7 +344,7 @@
                         if (!name || !description || isNaN(price) || !imageUrl) return alert('insert all the inputs lmao');
 
                         const fakeItem = {
-                            name: `${name} [fake]`,
+                            name: `${name} [C]`,
                             description,
                             price,
                             purchasable: false,
@@ -361,17 +365,30 @@
 
                         renderItems();
                     };
+                } else {
+                    renderCard("Create", "Create a custom shop item!", 0, false, "/public/CoM Icon.svg", "Create Now!", true, "?editor=true")
                 }
 
                 const allCategories = new Set();
 
-                const allShop = [...allItems, ...customItems];
+                const filteredAllItems = allItems.filter(item => {
+                    const categories = manualOverrides[item.name]?.category
+                        ? manualOverrides[item.name].category.split(',').map(c => c.trim())
+                        : (item.categories || []);
+                    return !categories.includes('Custom');
+                });
+                const allShop = [...filteredAllItems, ...customItems];
                 const filtered = allShop.filter(item => {
-                    const categories = manualOverrides[item.name]?.category?.split(',').map(c => c.trim()) || [];
+                    const categories = manualOverrides[item.name]?.category
+                        ? manualOverrides[item.name].category.split(',').map(c => c.trim())
+                        : (item.categories || []);
                     item.categories = categories;
+                    const isCustom = item.name.endsWith('[fake]') || (categories.includes('Custom'));
                     categories.forEach(c => allCategories.add(c));
 
-                    const matchesPrimary = selectedPrimary === "All" || categories.includes(selectedPrimary);
+                    const matchesPrimary = selectedPrimary === 'All'
+                        ? !isCustom
+                        : categories.includes(selectedPrimary);
                     const matchesSecondary = selectedSecondary.length === 0 || selectedSecondary.some(c => categories.includes(c));
 
                     return matchesPrimary && matchesSecondary;
@@ -384,7 +401,7 @@
                 allShop.forEach(item => {
                     const categories = manualOverrides[item.name]?.category?.split(',').map(c => c.trim()) || [];
                     categories.forEach(cat => {
-                        if (cat === "Physical" || cat === "Digital") return;
+                        if (cat === "Physical" || cat === "Digital" || cat === "Custom") return;
                         categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
                     })
                 });
@@ -421,48 +438,63 @@
 
                     item.categories = manualOverrides[item.name]?.category?.split(',').map(c => c.trim()) || item.categories || [];
 
-                    const card = document.createElement("div");
-                    card.className = "item-card regular-glassmorphism";
-
-                    const name = document.createElement("h3");
-                    name.className = "item-card__title";
-                    name.textContent = item.name;
-                    card.appendChild(name);
-
-                    const desc = document.createElement("p");
-                    desc.className = "item-card__description";
-                    desc.textContent = item.description;
-                    card.appendChild(desc);
-
-                    if (item.limited) {
-                        const stock = document.createElement("p");
-                        stock.className = "item-card__stock";
-                        stock.textContent = item.stock;
-                        card.appendChild(stock);
-                    }
-
-                    const image = document.createElement("img");
-                    image.className = "item-card__image";
-                    image.src = item.imageUrl
-                    card.appendChild(image);
-
-                    const price = document.createElement("button");
-                    price.className = "item-card__purchase regular-glassmorphism";
-                    price.innerHTML = `<img src="/public/shell.avif" height="16" width="auto"/> ${item.price} <span class="item-card__etr">(≈${item.price / averageShellsPerHour} hrs)</span>`;
-                    
-                    if (item.purchasable === true) {
-                        price.addEventListener('click', () => {
-                            window.location = "https://summer.hackclub.com" + item.purchaseUrl
-                        })
-                    } else {
-                        console.log(item.purchasable)
-                        price.disabled = true;
-                    }
-
-                    card.appendChild(price);
-
-                    grid.appendChild(card);
+                    renderCard(item.name, item.description, item.stock, item.limited, item.imageUrl, item.price, item.purchasable, item.purchaseUrl);
                 });
+            }
+
+            function renderCard(title, description, stockamount, islimited, imageUrl, priceamount, purchasable, purchaseUrl) {
+                const card = document.createElement("div");
+                card.className = "item-card regular-glassmorphism";
+
+                const name = document.createElement("h3");
+                name.className = "item-card__title";
+                name.textContent = title;
+                card.appendChild(name);
+
+                const desc = document.createElement("p");
+                desc.className = "item-card__description";
+                desc.textContent = description;
+                card.appendChild(desc);
+
+                if (islimited) {
+                    const stock = document.createElement("p");
+                    stock.className = "item-card__stock";
+                    stock.textContent = stockamount;
+                    card.appendChild(stock);
+                }
+
+                const image = document.createElement("img");
+                image.className = "item-card__image";
+                image.src = imageUrl;
+                card.appendChild(image);
+
+                const url = purchaseUrl || "";
+
+                const price = document.createElement("button");
+                price.className = "item-card__purchase regular-glassmorphism";
+                if (url.includes('?editor=true')) {
+                    price.innerHTML = priceamount;
+                } else {
+                    price.innerHTML = `<img src="/public/shell.avif" height="16" width="auto"/> ${priceamount} <span class="item-card__etr">(≈${priceamount / averageShellsPerHour} hrs)</span>`;
+                }
+
+
+                if (purchasable && url) {
+                    price.addEventListener("click", () => {
+                    if (url.includes("?editor=true")) {
+                        window.location.search = "?editor=true";
+                    } else {
+                        window.location = "https://summer.hackclub.com" + url;
+                    }
+                    });
+                } else {
+                    price.disabled = true;
+                }
+
+                card.appendChild(price);
+
+                const grid = document.querySelector('.shop-grid');
+                grid.appendChild(card);
             }
 
             document.querySelectorAll('.filter-button').forEach(btn => {

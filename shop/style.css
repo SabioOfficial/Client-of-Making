@@ -30,6 +30,12 @@ button {
     color: var(--text);
 }
 
+input {
+    font-family: 'National Park', sans-serif;
+    color: var(--text);
+    padding: 0;
+}
+
 .heading {
     padding: 0 20px;
 }
@@ -305,6 +311,57 @@ button {
 
 .item-card__etr {
     font-size: 0.6em;
+}
+
+#fake-name {
+    background: transparent;
+    border: none;
+    outline: none;
+}
+
+#fake-desc {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 1em;
+}
+
+#fake-image {
+    background: transparent;
+    border: none;
+    outline: none;
+    text-align: center;
+}
+
+.item-card__actions {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    margin: auto 24px 24px 24px;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+}
+
+#fake-shell {
+    width: 5%;
+}
+
+#fake-price {
+    width: 30%;
+    padding: 8px;
+    background: transparent;
+    border: none;
+    outline: none;
+    margin-right: 4px;
+}
+
+#add-fake {
+    width: 65%;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 1em;
+    cursor: pointer;
 }
 
 .skeleton {
