@@ -74,6 +74,20 @@
         <script>
             let averageShellsPerHour = 10
 
+            const urlParams = new URLSearchParams(window.location.search);
+            const isEditor = urlParams.get('editor') === 'true';
+
+            let customItems = [];
+            const storedItems = localStorage.getItem('customShopItems');
+            if (storedItems) {
+                try {
+                    customItems = JSON.parse(storedItems);
+                } catch (e) {
+                    console.error("Error parsing stored custom items:", e);
+                    customItems = [];
+                }
+            }
+
             function showSkeletonCards(count = 48) {
                 const grid = document.querySelector('.shop-grid');
                 grid.innerHTML = '';
@@ -274,15 +288,25 @@
                     });
 
                     const shopText = await shopRes.text();
+                    console.log("raw shop said: ", shopText);
+
                     let shopData;
                     try {
                         const parsed = JSON.parse(shopText);
-                        shopData = parsed?.extractedData;
+                        shopData = parsed?.extractedData || parsed;
                     } catch (e) {
                         throw new Error("Invalid JSON repsonse from backend (/shop)")
                     }
 
-                    allItems = shopData.shopItems || [];
+                    if (Array.isArray(shopData.shopItems)) {
+                        allItems = shopData.shopItems;
+                    } else if (shopData && typeof shopData === 'object' && shopData.shopItems) {
+                        allItems = Object.values(shopData.shopItems);
+                    } else {
+                        allItems = [];
+                    }
+                    console.log("parsed shop data:", shopData);
+                    console.log("final item count: ", allItems.length);
 
                     renderItems();
                 } catch (err) {
@@ -294,9 +318,55 @@
                 const grid = document.querySelector(".shop-grid");
                 grid.innerHTML = "";
 
+                if (isEditor) {
+                    const maker = document.createElement('div');
+                    maker.className = 'item-maker';
+                    maker.innerHTML = `
+                        <h2>sabio's cool item maker</h2>
+                        <input id="fake-name" placeholder="what's the item???????"/>
+                        <input id="fake-desc" placeholder="yap about the item!"/>
+                        <input id="fake-price" type="number" placeholder="pricey pricing"/>
+                        <input id="fake-image" placeholder="image url"/>
+                        <button id="add-fake">Add Item</button>
+                        <hr/>
+                    `;
+                    grid.appendChild(maker);
+
+                    document.getElementById('add-fake').onclick = async () => {
+                        const name = document.getElementById('fake-name').value.trim();
+                        const description = document.getElementById('fake-desc').value.trim();
+                        const price = Number(document.getElementById('fake-price').value);
+                        const imageUrl = document.getElementById('fake-image').value.trim();
+                        if (!name || !description || isNaN(price) || !imageUrl) return alert('insert all the inputs lmao');
+
+                        const fakeItem = {
+                            name: `${name} [fake]`,
+                            description,
+                            price,
+                            purchasable: false,
+                            imageUrl,
+                            purchaseUrl: null,
+                            categories: ['Custom']
+                        };
+
+                        customItems.push(fakeItem);
+                        localStorage.setItem('customShopItems', JSON.stringify(customItems));
+
+                        const cookie = getToken();
+                        await fetch('/save-item', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({cookie, item: fakeItem})
+                        });
+
+                        renderItems();
+                    };
+                }
+
                 const allCategories = new Set();
 
-                const filtered = allItems.filter(item => {
+                const allShop = [...allItems, ...customItems];
+                const filtered = allShop.filter(item => {
                     const categories = manualOverrides[item.name]?.category?.split(',').map(c => c.trim()) || [];
                     item.categories = categories;
                     categories.forEach(c => allCategories.add(c));
@@ -311,7 +381,7 @@
                 filterDiv.innerHTML = "";
                 
                 const categoryCounts = {};
-                allItems.forEach(item => {
+                allShop.forEach(item => {
                     const categories = manualOverrides[item.name]?.category?.split(',').map(c => c.trim()) || [];
                     categories.forEach(cat => {
                         if (cat === "Physical" || cat === "Digital") return;
@@ -349,7 +419,7 @@
                         item = {...item, ...override};
                     }
 
-                    item.categories = manualOverrides[item.name]?.category?.split(',').map(c => c.trim()) || [];
+                    item.categories = manualOverrides[item.name]?.category?.split(',').map(c => c.trim()) || item.categories || [];
 
                     const card = document.createElement("div");
                     card.className = "item-card regular-glassmorphism";
@@ -410,7 +480,7 @@
                 '/public/orpheus/party_dino.gif',
                 '/public/orpheus/chill_dino.png',
                 '/public/orpheus/party_orpheus.png',
-                '/public/orpheus/nervous_dino.gif' // because i might've done my cache wrong who knows?
+                '/public/orpheus/nervous_dino.gif'
             ];
             const randomIndex = Math.floor(Math.random() * happyDinoImages.length);
             document.getElementById('happy-dino').src = happyDinoImages[randomIndex];
