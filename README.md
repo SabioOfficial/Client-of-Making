@@ -21,6 +21,10 @@ You should choose **CoM** because it offers _awesome [^2] **Quality of Life** ch
 
 Hey, don't just take **my** word for it.[^5] Go **try it yourself** now at [the official website](https://client-of-making.quntem.co.uk). Yeah, no more need to _self host it_ on **prod**. That's **_insane_**.
 
+## How do you get the SEARCH_API_TOKEN
+
+DM @Alimad Co on HC's Slack!
+
 [^2]: Based on ~~users'~~ my feedback!
 [^3]: Source: ~~users'~~ my perspective!
 [^4]: Completely made up. **Possible** faster loading speeds.
