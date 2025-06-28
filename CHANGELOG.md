@@ -2,6 +2,14 @@
 
 All our changes of logging... I meant Client of Making.
 
+## Alpha 6.2
+
+In this update, we added **Custom Shop Items** to the **Shop** page _(Alpha 6.0 => 6.2)_ and added **.env.example** for those who are trying to test the Client out locally!
+
+## Alpha 6.1
+
+In this update, we fixed multiple critical bugs surrounding the **authentication server issue**, **campfire cache issue** and **much more**. We also changed to using the **SOMPS Searching API** in the **Explore** page _(Alpha 6.0 => 6.1)_ for better search results.
+
 ## Alpha 6.0
 
 In this preview update, we introduced the README.md and CHANGELOG.md files and implemented **skeleton** loading cards to the **explore** _(Alpha 5.0 => 6.0)_ and **shopping** _(Alpha 4.0 => 6.0)_ pages, added a brand new **sidebar animation** for the **shop** icon, **multi-selecting** categories in **shop**, many **quality of life** improvements for the **shop** and partial **mobile** support. We also revamped the **authentication** page _(Alpha 4.0 => 6.0)_, added a token **guide** and switched to **Alimad Co's** SOMPS API. Added huge improvements to **explore**. We also added the **Votes** _(Alpha 6.0)_ page.
