@@ -2,6 +2,10 @@
 
 All our changes of logging... I meant Client of Making.
 
+## Alpha 6.3
+
+- Added 🌍 Regional Pricing!
+
 ## Alpha 6.2
 
 In this update, we added **Custom Shop Items** to the **Shop** page _(Alpha 6.0 => 6.2)_ and added **.env.example** for those who are trying to test the Client out locally!
