@@ -2,6 +2,11 @@
 
 All our changes of logging... I meant Client of Making.
 
+## Alpha 6.4
+
+- Added 🦶 footer
+- Added ❓ about section
+
 ## Alpha 6.3
 
 - Added 🌍 Regional Pricing!

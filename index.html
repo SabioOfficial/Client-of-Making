@@ -14,17 +14,23 @@
         <link href="https://fonts.googleapis.com/css2?family=National+Park:wght@200..800&display=swap" rel="stylesheet">
 
         <script src="/public/tokenRequired.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/luxon"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
+
+        <script src="/public/footer.js"></script>
     </head>
     <body>
-        <script>
+        <!-- <script>
             notLoggedInOrRedirection()
-        </script>
+        </script> renable please -->
 
         <div class="layout-container">
-            <div class="main-area regular-glassmorphism centeredHV">   
-                <div id="main-area__section" class="main-area__section">
+            <div class="main-area regular-glassmorphism">   
+                <div id="main-area__section" class="main-area__section centeredHV">
+                    <img class="main-area__icon" src="/public/CoM Icon.svg" width="150" height="auto"/>
                     <h1>Client of Making</h1>
-                    <p>A quicker and cleaner alternative client to the Summer of Making client. In Alpha. More news at #com-logger!</p>
+                    <p>A quicker and cleaner alternative client to the Summer of Making client. In Alpha. More news at <a href="https://hackclub.slack.com/archives/C0935TQ3M16" target="_blank">#client-of-making</a>!</p>
                     <div class="log-in__container">
                         <a href="/auth/">
                             <button>
@@ -34,7 +40,213 @@
                         </a>
                     </div>
                 </div>
+                <div id="main-area__about-section" class="main-area__about-section">
+                    <div class="main-area__about-first-section">
+                        <div class="som-stat-box regular-glassmorphism" data-chart="participants">
+                            <h4>Participating Users</h4>
+                            <h3 id="participating-display">0 nerds</h3>
+                            <p>Nerdiest human beings.</p>
+                        </div>
+                        <div class="som-stat-box regular-glassmorphism active" data-chart="projects">
+                            <h4>Total Projects</h4>
+                            <h3 id="projects-display">0 shits</h3>
+                            <p id="average-projects-display">Average project count per participating user: 0.</p>
+                        </div>
+                        <div class="som-stat-box regular-glassmorphism" data-chart="minutes">
+                            <h4>Total Time Wasted</h4>
+                            <h3 id="time-display">0hr 0m</h3>
+                            <p>Nobody asked for this. Well, here we are.</p>
+                        </div>
+                    </div>
+                    <div class="main-area__about-chart">
+                        <canvas id="mainStatsChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <script>
+            let chartInstance;
+
+            async function populateAboutSection() {
+                const container = document.getElementById('main-area__about-section');
+
+                try {
+                    const res = await fetch('https://somps.vercel.app/api/stats');
+                    const data = await res.json();
+
+                    const {
+                        total_projects,
+                        certified,
+                        certified_10,
+                        total_users,
+                        total_minutes,
+                        joined_users,
+                        project_chart,
+                        participants_chart,
+                        minutes_chart
+                    } = data;
+
+                    const hours = Math.round(total_minutes / 60).toLocaleString();
+                    const projects = total_projects.toLocaleString();
+                    const users = total_users.toLocaleString();
+                    const joined = joined_users.toLocaleString();
+
+                    document.getElementById('participating-display').textContent = joined + " nerds";
+                    document.getElementById('projects-display').textContent = projects + " shits";
+                    document.getElementById('time-display').textContent = hours + " hours wasted";
+                    document.getElementById('average-projects-display').textContent =
+                        "Average project count per participating user: " + (Number(total_projects) / Number(joined_users)).toFixed(2) + " projects.";
+
+                    const convertChart = (obj) => {
+                        return Object.entries(obj)
+                            .map(([ts, val]) => ({x: new Date(ts), y: val}))
+                            .sort((a, b) => a.x - b.x);
+                    };
+
+                    function createBestFit(points) {
+                        const timestamps = points.map(p => p.x.getTime());
+                        const values = points.map(p => p.y);
+                        const avgX = timestamps.reduce((a, b) => a + b, 0) / timestamps.length;
+                        const avgY = values.reduce((a, b) => a + b, 0) / values.length;
+
+                        let num = 0, den = 0;
+                        for (let i = 0; i < timestamps.length; i++) {
+                            num += (timestamps[i] - avgX) * (values[i] - avgY);
+                            den += Math.pow(timestamps[i] - avgX, 2);
+                        }
+
+                        const slope = num / den;
+                        const intercept = avgY - slope * avgX;
+
+                        return timestamps.map(t => ({x: new Date(t), y: slope * t + intercept}));
+                    }
+
+                    function renderChart(datasetKey, dataObj) {
+                        if (chartInstance) chartInstance.destroy();
+
+                        const ctx = document.getElementById('mainStatsChart').getContext('2d');
+                        let datasets = [];
+                        let yTitle = '';
+                        let yAxisID = 'y';
+
+                        if (datasetKey === 'projects') {
+                            const dataPoints = convertChart(dataObj.project_chart);
+                            const bestFit = createBestFit(dataPoints);
+
+                            datasets = [
+                                {
+                                    label: 'Total Projects',
+                                    data: dataPoints,
+                                    borderColor: 'rgb(137, 91, 62)',
+                                    tension: 0.3
+                                },
+                                {
+                                    label: 'Trend Line',
+                                    data: bestFit,
+                                    borderColor: 'rgb(137, 91, 62)',
+                                    borderDash: [5, 5],
+                                    pointRadius: 0,
+                                    fill: false
+                                }
+                            ];
+                            yTitle = 'Projects';
+                        } else if (datasetKey === 'participants') {
+                            const dataPoints = convertChart(dataObj.participants_chart);
+                            const bestFit = createBestFit(dataPoints);
+
+                            datasets = [
+                                {
+                                    label: 'Total Participants',
+                                    data: dataPoints,
+                                    borderColor: 'rgb(137, 91, 62)',
+                                    tension: 0.3
+                                },
+                                {
+                                    label: 'Trend Line',
+                                    data: bestFit,
+                                    borderColor: 'rgb(137, 91, 62)',
+                                    borderDash: [5, 5],
+                                    pointRadius: 0,
+                                    fill: false
+                                }
+                            ];
+                            yTitle = 'Participants';
+                        } else if (datasetKey === 'minutes') {
+                            const dataPoints = convertChart(dataObj.minutes_chart);
+                            const bestFit = createBestFit(dataPoints);
+
+                            datasets = [
+                                {
+                                    label: 'Total Minutes Logged',
+                                    data: dataPoints,
+                                    borderColor: 'rgb(137, 91, 62)',
+                                    tension: 0.3
+                                },
+                                {
+                                    label: 'Trend Line',
+                                    data: bestFit,
+                                    borderColor: 'rgb(137, 91, 62)',
+                                    borderDash: [5, 5],
+                                    pointRadius: 0,
+                                    fill: false
+                                }
+                            ];
+                            yTitle = 'Minutes Logged';
+                        }
+
+                        chartInstance = new Chart(ctx, {
+                            type: 'line',
+                            data: {datasets},
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    x: {
+                                        type: 'time',
+                                        time: {
+                                            unit: 'day',
+                                            tooltipFormat: 'MMM d, HH:mm'
+                                        },
+                                        title: {display: true, text: 'Date'}
+                                    },
+                                    [yAxisID]: {
+                                        type: 'linear',
+                                        position: 'left',
+                                        title: {display: true, text: yTitle},
+                                        beginAtZero: false
+                                    }
+                                },
+                                plugins: {
+                                    legend: {position: 'top'},
+                                    tooltip: {mode: 'index', intersect: false}
+                                }
+                            }
+                        });
+                    }
+
+                    const projectPoints = convertChart(project_chart);
+                    const participantPoints = convertChart(participants_chart);
+                    const minutePoints = convertChart(minutes_chart);
+
+                    document.querySelectorAll('.som-stat-box').forEach(box => {
+                        box.addEventListener('click', () => {
+                            document.querySelectorAll('.som-stat-box').forEach(b => b.classList.remove('active'));
+                            box.classList.add('active');
+                            const key = box.dataset.chart;
+                            renderChart(key, data)
+                        });
+                    });
+
+                    renderChart('projects', data);
+
+                } catch (e) {
+                    console.error('Failed to fetch stats:', e);
+                    container.innerHTML = `<p class="error" style="text-align: center;">Failed to load stats. Womp womp. ${e}</p>`;
+                }
+            }
+
+            populateAboutSection();
+        </script>
     </body>
 </html>

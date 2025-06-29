@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .site-footer {
+            position: fixed;
+            bottom: 8px;
+            left: 0;
+            width: 100%;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            font-size: 0.85em;
+            color: var(--text);
+            background: transparent;
+            backdrop-filter: blur(6px);
+            z-index: 100;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            width: 95%;
+            max-width: 800px;
+        }
+    </style>
+</head>
+    <body>
+        <div class="site-footer" id="site-footer">
+            <div class="footer-content">
+                <span id="footer-users">🟢 Online: ...</span>
+                <span id="footer-version">🔁 Build: ...</span>
+            </div>
+        </div>
+    </body>
+</html>
