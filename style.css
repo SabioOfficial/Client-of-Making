@@ -150,8 +150,8 @@ a:active {
     padding: 8px 32px;
     width: 100%;
     transition: var(--transition);
+    cursor: pointer;
 }
-
 
 .som-stat-box.active {
     padding: 80px 32px;
