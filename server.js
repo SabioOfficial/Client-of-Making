@@ -139,7 +139,9 @@ app.post('/save-item', express.json(), (req, res) => {
 });
 
 app.post('/fetch', async (req, res) => {
-    const { cookie, path: requestedPath } = req.body;
+    const { cookie, path: requestedPath, region } = req.body;
+    const regionKey = region ? `?region=${region}` : '';
+    const cacheKey = `${requestedPath}${regionKey}`;
     if (!cookie || !requestedPath)
         return res.status(400).send('Missing cookie or path');
     if (!allowedPaths.has(requestedPath))
@@ -147,7 +149,7 @@ app.post('/fetch', async (req, res) => {
 
     const effectiveCacheLifetime =
         PATH_CACHE_LIFETIMES[requestedPath] || DEFAULT_CACHE_LIFETIME_MS;
-    let cacheEntry = cache.get(requestedPath);
+    let cacheEntry = cache.get(cacheKey);
 
     if (userScopedPaths.has(requestedPath)) {
         cacheEntry = null;
@@ -170,8 +172,13 @@ app.post('/fetch', async (req, res) => {
                 rawProjects: projects
             };
         } else {
+            let url = `https://summer.hackclub.com${requestedPath}`;
+            if (requestedPath === '/shop' && region) {
+                url += url.includes('?') ? `&region=${region}` : `?region=${region}`;
+            }
+
             const { data: html } = await axios.get(
-                `https://summer.hackclub.com${requestedPath}`,
+                url,
                 {
                     headers: {
                         Cookie: cookie,
@@ -273,7 +280,7 @@ app.post('/fetch', async (req, res) => {
         }
 
         const apiResponseData = { path: requestedPath, status: 'success', extractedData };
-        cache.set(requestedPath, { data: apiResponseData, timestamp: Date.now() });
+        cache.set(cacheKey, { data: apiResponseData, timestamp: Date.now() });
         res.json(apiResponseData);
     } catch (err) {
         res.status(500).json({ status: 'error', message: `Failed to fetch data for ${requestedPath}` });

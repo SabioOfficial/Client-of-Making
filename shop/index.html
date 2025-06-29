@@ -63,6 +63,15 @@
                         <div id="secondary-filter">
                             <button class="secondary-filter-button regular-glassmorphism">All Projects</button>
                         </div>
+                        <h3 class="region-selector__heading">what's ur exact geo location? 🌍</h3>
+                        <select id="region-selector" class="regular-glassmorphism">
+                            <option value="US">🦅 FREEDOM OF SPEECH!!!!!!!! (US)</option>
+                            <option vlaue="EU">⚖️ EU ABANDONER + TEH EU!!!!!! (UK + EU)</option>
+                            <option value="IN">📢 MY LAWYERS ADVISED ME NOT TO MAKE A JOKE ABOUT THIS ONE!! (INDIA)</option>
+                            <option vlaue="CA">🍁 TEH MAPLE SYRUP!!!!!! IT'S GETTING TO ME (CANADA)</option>
+                            <option value="AU">🕷️ SPIDER LAND!!!!!!!! PRISONER LAND!!!!!!!! (AUSTRALIA)</option>
+                            <option value="XX">➕ oter lands (other)</option>
+                        </select>
                     </div>
 
                     <div class="shop-grid">
@@ -270,6 +279,9 @@
                 "Framework 12": {
                     category: "Physical, Hardware, Laptop, Utility, Device, DIY"
                 },
+                "Nebula.tv Lifetime subscription": {
+                    category: "Digital, Subscription"
+                },
                 "13-inch M4 MacBook Air": {
                     category: "Physical, Hardware, Apple, Laptop, Utility, Device"
                 }
@@ -282,10 +294,12 @@
                 const shopPath = "/shop";
 
                 try {
+                    const region = document.getElementById('region-selector')?.value || '';
+
                     const shopRes = await fetch('/fetch', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({cookie, path: shopPath})
+                        body: JSON.stringify({cookie, path: shopPath, region})
                     });
 
                     const shopText = await shopRes.text();
@@ -505,6 +519,12 @@
                     renderItems();
                 });
             });
+
+            document.getElementById('region-selector').addEventListener('change', () => {
+                if (window.location.pathname.includes('/shop')) {
+                    fetchPage();
+                }
+            })
 
             fetchPage();
 

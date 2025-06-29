@@ -46,7 +46,7 @@
             <div class="main-area regular-glassmorphism">   
                 <div id="main-area__section" class="main-area__section">
                     <div class="expiration__notice regular-glassmorphism">
-                        <img height="75" width="auto" id="nervous-dino">
+                        <img height="75" width="auto" id="happy-dino">
                         <div style="display: flex; flex-direction: column; gap: 8px;">
                             <h2>Remember to devlog!</h2>
                             <p>Hackatime minutes are only valid without devlogs up to 10 hours.</p>
@@ -162,6 +162,12 @@
                     document.getElementById('today-coding-time__display').textContent = todayTime;
                     document.getElementById('total-coding-time__display').textContent = totalTime;
 
+                    const todayHrs = parseHours(todayTime);
+                    const totalHrs = parseHours(totalTime);
+
+                    document.getElementById('roast-display').textContent = getDailyRoast(todayHrs);
+                    document.getElementById('roast-display-2').textContent = getRoast(totalHrs);
+
                     renderProjects()
                 } catch (err) {
                     console.error(err.message);
@@ -222,40 +228,179 @@
             const randomIndex = Math.floor(Math.random() * happyDinoImages.length);
             document.getElementById('happy-dino').src = happyDinoImages[randomIndex];
 
-            const nervousDinoImages = [
-                '/public/orpheus/nervous_dino.gif',
-                '/public/orpheus/oopheus.png',
-                '/public/orpheus/waaaah_dino.png',
-                '/public/orpheus/man_face_dino.png',
-                '/public/orpheus/ugh.png'
-            ];
-            const randomNervousDinoIndex = Math.floor(Math.random() * nervousDinoImages.length);
-            document.getElementById('nervous-dino').src = nervousDinoImages[randomIndex];
+            function parseHours(str) {
+                if (typeof str !== 'string') return 0;
+                const [, h, m] = str.match(/(\d+)h\s*(\d+)m/) || [];
+                return (Number(h) || 0) + (Number(m) || 0) / 60;
+            }
 
-            const roasts = [
-                "Start coding now. Actually, please don't, I don't need more competition.",
-                "It's time to go outside.",
-                "It's time to take a shower.",
-                "The lock in is massive. Do you want to know what else is massive?",
-                "Touch some grass. Please.",
-                "It's time to get some deoderant.",
-                "Don't macro.",
-                "You might feel like you can get away with macroing, but you can't.",
-                "Doesn't grass feel nice? Ever felt it?",
-                "Get a j*b, mate.",
-                "Get a life, dude.",
-                "It smells like a dumpster in here! Take a shower!",
-                "What? You realised you haven't taken a shower since 420 BC? Yeah, go take it now."
-            ];
+            function getRoast(hours) {
+                let bucket = roastLevels[0];
+                for (const lvl of roastLevels) {
+                    if (hours >= lvl.minHours && lvl.minHours > bucket.minHours) {
+                        bucket = lvl;
+                    }
+                }
+                const {roasts} = bucket;
+                return roasts[Math.floor(Math.random() * roasts.length)];
+            }
 
-            const randomRoastIndex = Math.floor(Math.random() * roasts.length);
-            let randomRoastIndex2;
-            do {
-                randomRoastIndex2 = Math.floor(Math.random() * roasts.length);
-            } while (randomRoastIndex2 === randomRoastIndex && roasts.length > 1);
+            function getDailyRoast(hours) {
+                let bucket = roastDailyLevels[0];
+                for (const lvl of roastDailyLevels) {
+                    if (hours >= lvl.minHours && lvl.minHours > bucket.minHours) {
+                        bucket = lvl;
+                    }
+                }
+                const {roasts} = bucket;
+                return roasts[Math.floor(Math.random() * roasts.length)];
+            }
 
-            document.getElementById('roast-display').textContent = roasts[randomRoastIndex];
-            document.getElementById('roast-display-2').textContent = roasts[randomRoastIndex2];
+            const roastLevels = [
+                {
+                    minHours: 0,
+                    roasts: [
+                        "You have less hours than a broken clock. Start coding, rookie.",
+                        "Your code editor is gathering more dust than your ambitions.",
+                        "You spend more time thinking about coding than actually coding.",
+                        "Your GitHub is emptier than your fridge.",
+                        "You have less hours than a potato battery.",
+                        "Your keyboard called. It forgot what you look like.",
+                        "You code so little, even Notepad feels neglected."
+                    ]
+                },
+                {
+                    minHours: 10,
+                    roasts: [
+                        "10 hours? That's cute. My grandma codes more than you.",
+                        "You code just enough to break things, but not enough to fix them.",
+                        "At this rate, you'll finish your project by the next ice age.",
+                        "You have more unfinished projects than lines of code.",
+                        "Your codebase is as empty as your motivation.",
+                        "You code like you're afraid of success."
+                    ]
+                },
+                {
+                    minHours: 50,
+                    roasts: [
+                        "50 hours in and you still can't center a div. Impressive.",
+                        "Your bugs have started a union.",
+                        "Your code is so messy, even Stack Overflow gave up.",
+                        "You spend more time debugging than coding. Congrats.",
+                        "Your keyboard is begging for mercy.",
+                        "You have more TODOs than actual code."
+                    ]
+                },
+                {
+                    minHours: 200,
+                    roasts: [
+                        "200+ hours? Touch grass. Seriously.",
+                        "Your chair has a permanent dent with your name on it.",
+                        "You have more commits than friends. And that's saying something.",
+                        "Your codebase is the only thing growing faster than your laundry pile.",
+                        "Even your bugs are asking for a vacation.",
+                        "You code so much, your monitor needs therapy."
+                    ]
+                },
+                {
+                    minHours: 400,
+                    roasts: [
+                        "400 hours? Your codebase is now eligible for a midlife crisis.",
+                        "You've spent so long coding, your keyboard is now a fossil.",
+                        "Your IDE has seen more of you than your family.",
+                        "At this point, your bugs have their own family tree.",
+                        "You've written more spaghetti than an Italian chef.",
+                        "Your codebase is a cryptid. People hear about it, but nobody wants to see it."
+                    ]
+                },
+                {
+                    minHours: 750,
+                    roasts: [
+                        "750 hours? You've coded so much, even your tears have commit messages.",
+                        "You've spent so long coding, your only emotion left is 'null'.",
+                        "Your codebase is so cursed, it made you cry in binary.",
+                        "You've reached the point where your only break is a good cry between builds.",
+                        "Your monitor's brightness is the only thing hiding your tears.",
+                        "You've written more lines than Shakespeare, but most of them are just crying emojis.",
+                        "Your keyboard is water-resistant from all the tears.",
+                        "You've coded so much, your DNA is now 10% JavaScript errors and 90% tears.",
+                        "At this point, your codebase is a horror story told to scare junior devs— and make them cry.",
+                        "Congratulations, you've officially merged with your chair and your feelings."
+                    ]
+                }
+            ]
+
+            const roastDailyLevels = [
+                {
+                    minHours: 0,
+                    roasts: [
+                        "Your daily coding time is so low, even your computer pities you.",
+                        "You code less in a day than most people blink.",
+                        "If your productivity was a bug, it would be marked 'won't fix'.",
+                        "Your daily output is so embarrassing, even your rubber duck left you.",
+                        "You write less code in a day than a fortune cookie.",
+                        "Your daily commits are so rare, GitHub thinks you're a bot.",
+                        "If you coded any less, your IDE would uninstall itself."
+                    ]
+                },
+                {
+                    minHours: 1,
+                    roasts: [
+                        "One hour? That's not coding, that's a warm-up for disappointment.",
+                        "You code for an hour and call it a day? Ambition must be allergic to you.",
+                        "Your one hour of code is the reason tech debt exists.",
+                        "If you worked any slower, you'd be coding in reverse.",
+                        "Your code is so uninspired, even AI refuses to autocomplete.",
+                        "One hour a day? At this rate, your project will finish itself out of pity."
+                    ]
+                },
+                {
+                    minHours: 3,
+                    roasts: [
+                        "Three hours? That's cute. My grandma codes more in her sleep.",
+                        "Your three hours of code are three hours the world will never get back.",
+                        "You code for three hours and break more than you build.",
+                        "Your bugs multiply faster than your daily progress.",
+                        "Three hours a day and you still can't center a div. Legendary.",
+                        "Your codebase is a monument to wasted time."
+                    ]
+                },
+                {
+                    minHours: 6,
+                    roasts: [
+                        "Six hours? Your code is so bad, Stack Overflow banned you before you even started using it.",
+                        "You code for six hours and still manage to accomplish nothing.",
+                        "Your daily grind is so pointless, even your compiler sighs.",
+                        "Six hours of code, zero hours of improvement.",
+                        "Your code is so tragic, Shakespeare would write a play about it.",
+                        "You spend six hours a day making your bugs feel at home."
+                    ]
+                },
+                {
+                    minHours: 10,
+                    roasts: [
+                        "Ten hours? Your codebase is a crime scene and you're the main suspect.",
+                        "You code for ten hours a day and still have nothing to show for it.",
+                        "Ten hours of code, ten thousand regrets.",
+                        "Your code is so unreadable, even you need a map.",
+                        "Ten hours a day and your project is still in beta? Impressive.",
+                        "Your codebase is the reason code reviews exist."
+                    ]
+                },
+                {
+                    minHours: 16,
+                    roasts: [
+                        "Sixteen hours? Your only accomplishment is making your chair cry.",
+                        "You code sixteen hours a day and your bugs have tenure.",
+                        "Sixteen hours of code, sixteen reasons to quit.",
+                        "Your codebase is so cursed, even version control gave up.",
+                        "You spend more time coding than sleeping, and it shows.",
+                        "Sixteen hours a day and your code is still a disaster. Bravo.",
+                        "You've spent so long coding, your only emotion left is 'null'.",
+                        "Your codebase is so cursed, it made you cry in binary.",
+                    ]
+                }
+            ]
         </script>
     </body>
 </html>

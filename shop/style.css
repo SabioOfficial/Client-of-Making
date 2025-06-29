@@ -228,6 +228,17 @@ input {
     transform: scale(1);
 }
 
+#region-selector {
+    font-family: 'National Park', sans-serif;
+    padding: 8px 24px;
+    border-radius: 8px;
+    color: var(--text);
+}
+
+.region-selector__heading {
+    margin: 36px 36px 24px 36px;
+}
+
 .shop-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
