@@ -225,6 +225,11 @@ h1, h2, h3, h4, h5, h6 {
     object-fit: cover;
     border-radius: 10px;
     margin-bottom: 15px;
+    transition: var(--transition);
+}
+
+.project-card__banner:hover {
+    transform: scale(1.05);
 }
 
 .project-card__title {

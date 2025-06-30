@@ -82,7 +82,58 @@
             </div>
         </div>
 
-        <script>
+        <script type="module">
+            import initEpoxy, {EpoxyClient, EpoxyClientOptions} from '../public/pkg/epoxy-bundled.js'
+
+            let epoxyClient;
+
+            async function getEpoxyClient() {
+                if (!epoxyClient) {
+                    await initEpoxy();
+                    const options = new EpoxyClientOptions();
+                    options.user_agent = navigator.userAgent;
+                    options.wisp_v2 = true;
+                    epoxyClient = new EpoxyClient('wss://wisp.mercurywork.shop', options);
+                }
+                return epoxyClient;
+            }
+
+            async function fetchShopItems(cookie, region) {
+                const client = await getEpoxyClient();
+                let url = 'https://summer.hackclub.com/shop';
+                if (region) url += `?region=${encodeURIComponent(region)}`;
+                const response = await client.fetch(url, {
+                    headers: {
+                        Cookie: cookie,
+                        'User-Agent': navigator.userAgent,
+                        Accept: 'text/html',
+                    },
+                });
+                return response.text();
+            }
+
+            function parseShopHtml(html) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const shopItems = [];
+                doc.querySelectorAll('.card-with-gradient').forEach(card => {
+                    const content = card.querySelector('.card-content');
+                    const name = content.querySelector('h3')?.textContent.trim();
+                    if (name === "🌍 Choose Your Region") return;
+                    shopItems.push({
+                        name: name,
+                        description: content.querySelector('p.text-gray-700')?.textContent.trim(),
+                        price: content.querySelector('div.absolute.top-2.right-2')?.textContent.trim(),
+                        imageUrl: card.querySelector('img.rounded-lg')?.src || null,
+                        purchaseUrl: content.querySelector('form.button_to')?.action || null,
+                        purchasable: !content.querySelector('button.w-full')?.disabled,
+                        stock: content.querySelector('p.text-orange-600')?.textContent.trim() || null,
+                        limited: !!content.querySelector('p.text-orange-600'),
+                    });
+                });
+                return shopItems;
+            }
+
             let averageShellsPerHour = 10
 
             const urlParams = new URLSearchParams(window.location.search);
@@ -193,6 +244,9 @@
                     description: "cutest buddy, no introduction required.",
                     category: "Physical, Plushie, Loved"
                 },
+                "shapez 2": {
+                    category: "Digital, License, Game"
+                },
                 "USB C Cable + Wall Adapter": {
                     category: "Physical, Hardware, Utility, Adapter"
                 },
@@ -280,6 +334,9 @@
                 "Framework 12": {
                     category: "Physical, Hardware, Laptop, Utility, Device, DIY"
                 },
+                "Prusa MK4S 3D Printer": {
+                    category: "Physical, Hardware, Printer, Utility"
+                },
                 "Nebula.tv Lifetime subscription": {
                     category: "Digital, Subscription"
                 },
@@ -288,45 +345,16 @@
                 }
             };
 
-            async function fetchPage() {
+            async function loadShop(region) {
                 showSkeletonCards();
-
                 const cookie = getToken();
-                const shopPath = "/shop";
-
                 try {
-                    const region = document.getElementById('region-selector')?.value || '';
-
-                    const shopRes = await fetch('/fetch', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({cookie, path: shopPath, region})
-                    });
-
-                    const shopText = await shopRes.text();
-                    console.log("raw shop said: ", shopText);
-
-                    let shopData;
-                    try {
-                        const parsed = JSON.parse(shopText);
-                        shopData = parsed?.extractedData || parsed;
-                    } catch (e) {
-                        throw new Error("Invalid JSON repsonse from backend (/shop)")
-                    }
-
-                    if (Array.isArray(shopData.shopItems)) {
-                        allItems = shopData.shopItems;
-                    } else if (shopData && typeof shopData === 'object' && shopData.shopItems) {
-                        allItems = Object.values(shopData.shopItems);
-                    } else {
-                        allItems = [];
-                    }
-                    console.log("parsed shop data:", shopData);
-                    console.log("final item count: ", allItems.length);
-
+                    const html = await fetchShopItems(cookie, region);
+                    const shopItems = parseShopHtml(html);
+                    allItems = shopItems;
                     renderItems();
                 } catch (err) {
-                    alert(err.message);
+                    console.error('Failed to load shop items: ', err);
                 }
             }
 
@@ -521,13 +549,13 @@
                 });
             });
 
-            document.getElementById('region-selector').addEventListener('change', () => {
-                if (window.location.pathname.includes('/shop')) {
-                    fetchPage();
-                }
-            })
+            const regionSelect = document.getElementById('region-selector');
+            regionSelect.value = urlParams.get('region') || 'US';
+            regionSelect.addEventListener('change', e => {
+                loadShop(e.target.value);
+            });
 
-            fetchPage();
+            loadShop(urlParams.get('region') || regionSelect.value);
 
             const happyDinoImages = [
                 '/public/orpheus/party_dino.gif',

@@ -1,0 +1,48 @@
+{
+	"name": "@mercuryworkshop/epoxy-tls",
+	"version": "2.1.17-1",
+	"description": "A wasm library for using raw encrypted tls/ssl/tcp/udp/https/websocket streams on the browser",
+	"scripts": {
+		"build": "./build.sh"
+	},
+	"keywords": [
+		"wasm",
+		"ssl",
+		"tls",
+		"rust",
+		"proxy",
+		"http"
+	],
+	"author": "MercuryWorkshop",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/MercuryWorkshop/epoxy-tls.git"
+	},
+	"license": "AGPL-3.0-only",
+	"exports": {
+		".": {
+			"import": "./full/epoxy-bundled.js",
+			"types": "./full/epoxy-bundled.d.ts"
+		},
+		"./epoxy": {
+			"import": "./full/epoxy.js",
+			"types": "./full/epoxy.d.ts"
+		},
+		"./epoxy-bundled": {
+			"import": "./full/epoxy-bundled.js",
+			"types": "./full/epoxy-bundled.d.ts"
+		},
+		"./minimal-epoxy": {
+			"import": "./minimal/epoxy.js",
+			"types": "./minimal/epoxy.d.ts"
+		},
+		"./minimal-epoxy-bundled": {
+			"import": "./minimal/epoxy-bundled.js",
+			"types": "./minimal/epoxy-bundled.d.ts"
+		}
+	},
+	"browser": "./full/epoxy-bundled.js",
+	"module": "./full/epoxy-bundled.js",
+	"main": "./full/epoxy-bundled.js",
+	"types": "./full/epoxy-bundled.d.ts"
+}

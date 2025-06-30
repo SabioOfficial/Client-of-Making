@@ -65,7 +65,52 @@
             </div>
         </div>
 
-        <script>
+        <script type="module">
+            import initEpoxy, {EpoxyClient, EpoxyClientOptions} from '../public/pkg/epoxy-bundled.js';
+
+            let epoxyClient;
+
+            async function getEpoxyClient() {
+                if (!epoxyClient) {
+                    await initEpoxy();
+                    const options = new EpoxyClientOptions();
+                    options.user_agent = navigator.userAgent;
+                    options.wisp_v2 = true;
+                    epoxyClient = new EpoxyClient('wss://wisp.mercurywork.shop', options);
+                }
+                return epoxyClient;
+            }
+
+            async function fetchVotes(cookie) {
+                const client = await getEpoxyClient();
+                const response = await client.fetch('https://summer.hackclub.com/votes/locked', {
+                    headers: {
+                        Cookie: cookie,
+                        'User-Agent': navigator.userAgent,
+                        Accept: 'text/html',
+                    },
+                });
+                return response.text();
+            }
+
+            function parseVotesHtml(html) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const votes = [];
+                doc.querySelectorAll('.card-with-gradient.text-lg.text-center').forEach(card => {
+                    const content = card.querySelector('.card-content');
+                    votes.push({
+                        approved: content.querySelector('p.text-2xl')?.textContent.trim().split('/')[0].trim(),
+                        certified: Number(
+                        Array.from(content.querySelectorAll('p'))
+                            .find(p => p.textContent.includes('certified projects, any amount of coding time)'))
+                            ?.textContent.match(/\d+/)?.[0] || 0
+                        ),
+                    });
+                });
+                return votes;
+            }
+
             let votes = [];
 
             function showSkeleton() {
@@ -75,45 +120,65 @@
                 document.getElementById('certified__display').classList.add('skeleton', 'skeleton-line');
             }
 
-            async function fetchPage() {
+            async function loadPage() {
                 showSkeleton();
-
                 const cookie = getToken();
-                const votePath = "/votes/locked";
-
                 try {
-                    const voteRes = await fetch('/fetch', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({cookie, path: votePath})
-                    });
-
-                    const voteText = await voteRes.text();
-                    console.log("Raw voteText:", voteText);
-                    let voteData;
-                    try {
-                        const parsed = JSON.parse(voteText);
-                        voteData = parsed?.extractedData;
-                    } catch (e) {
-                        throw new Error("Invalid JSON rsponse from backend (/votes)")
-                    }
-
-                    votes = voteData.votes || [];
-
+                    const html = await fetchVotes(cookie);
+                    const votesArray = parseVotesHtml(html);
                     document.getElementById('approved__display').classList.remove('skeleton', 'skeleton-title');
                     document.getElementById('certified__display').classList.remove('skeleton', 'skeleton-line');
-
+                    votes = votesArray;
+                    console.log(votes)
                     renderVotes();
                 } catch (err) {
-                    alert(err.message);
+                    console.error('Failed to load votes:', err)
                 }
             }
 
+            // async function fetchPage() {
+            //     showSkeleton();
+
+            //     const cookie = getToken();
+            //     const votePath = "/votes/locked";
+
+            //     try {
+            //         const voteRes = await fetch('/fetch', {
+            //             method: 'POST',
+            //             headers: {'Content-Type': 'application/json'},
+            //             body: JSON.stringify({cookie, path: votePath})
+            //         });
+
+            //         const voteText = await voteRes.text();
+            //         console.log("Raw voteText:", voteText);
+            //         let voteData;
+            //         try {
+            //             const parsed = JSON.parse(voteText);
+            //             voteData = parsed?.extractedData;
+            //         } catch (e) {
+            //             throw new Error("Invalid JSON rsponse from backend (/votes)")
+            //         }
+
+            //         votes = voteData.votes || [];
+
+            //         document.getElementById('approved__display').classList.remove('skeleton', 'skeleton-title');
+            //         document.getElementById('certified__display').classList.remove('skeleton', 'skeleton-line');
+
+            //         renderVotes();
+            //     } catch (err) {
+            //         alert(err.message);
+            //     }
+            // }
+
             function renderVotes() {
-                const approvedDisplay = document.getElementById('approved__display');
+                const approvedDisplay  = document.getElementById('approved__display');
                 const certifiedDisplay = document.getElementById('certified__display');
-                approvedDisplay.textContent = votes[0]?.approved + " / 100 Quality Projects" || "Error";
-                certifiedDisplay.textContent = "and " + votes[0]?.certified + " Certified Projects" || "Error";
+
+                const a = votes[0]?.approved   ?? '0';
+                const c = votes[0]?.certified  ?? '0';
+
+                approvedDisplay .textContent = `${a} / 100 Quality Projects`;
+                certifiedDisplay.textContent = `and ${c} Certified Projects.`;
             }
 
             const happyDinoImages = [
@@ -125,7 +190,7 @@
             const randomIndex = Math.floor(Math.random() * happyDinoImages.length);
             document.getElementById('happy-dino').src = happyDinoImages[randomIndex];
 
-            fetchPage();
+            loadPage();
         </script>
     </body>
 </html>

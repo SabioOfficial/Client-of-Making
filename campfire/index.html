@@ -59,13 +59,13 @@
                     <div class="today-coding-time__div regular-glassmorphism">
                         <h3>Today, you've been coding for</h3>
                         <h2 id="today-coding-time__display">0h 0m</h2>
-                        <p id="roast-display">It's time to take a shower.</p>
+                        <p id="roast-display">loading...</p>
                     </div>
 
                     <div class="total-coding-time__div regular-glassmorphism">
                         <h3>In total, you've been coding for</h3>
                         <h2 id="total-coding-time__display">0h 0m</h2>
-                        <p id="roast-display-2">It's time to take a shower.</p>
+                        <p id="roast-display-2">loading...</p>
                     </div>
 
                     <h2 id="project-count" class="heading">Your Projects (0)</h2>
@@ -77,7 +77,22 @@
             </div>
         </div>
 
-        <script>
+        <script type="module">
+            import initEpoxy, {EpoxyClient, EpoxyClientOptions} from '../public/pkg/epoxy-bundled.js'
+
+            let epoxyClient;
+
+            async function getEpoxyClient() {
+                if (!epoxyClient) {
+                    await initEpoxy();
+                    const options = new EpoxyClientOptions();
+                    options.user_agent = navigator.userAgent;
+                    options.wisp_v2 = true;
+                    epoxyClient = new EpoxyClient('wss://wisp.mercurywork.shop', options);
+                }
+                return epoxyClient;
+            }
+
             let allProjects = [];
             let todayTime;
             let totalTime;
@@ -112,51 +127,53 @@
             async function fetchPage() {
                 showSkeletonCampfire();
                 const cookie = getToken();
-                const campfirePath = "/campfire";
-                const projectsPath = "/my_projects";
+                const campfirePath = "https://summer.hackclub.com/campfire";
+                const projectsPath = "https://summer.hackclub.com/my_projects";
 
                 try {
-                    const campfireRes = await fetch('/fetch', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({cookie, path: campfirePath})
+                    const client = await getEpoxyClient();
+
+                    const campfireRes = await client.fetch(campfirePath, {
+                        headers: {
+                            Cookie: cookie,
+                            'User-Agent': navigator.userAgent,
+                            Accept: 'text/html',
+                        },
                     });
+                    const campfireHtml = await campfireRes.text();
 
-                    const campfireText = await campfireRes.text();
-                    let campfireData;
-                    try {
-                        const parsed = JSON.parse(campfireText);
-                        campfireData = parsed?.extractedData;
-                    } catch (e) {
-                        throw new Error("Invalid JSON response from backend (/campfire).");
-                    }
-
-                    todayTime = campfireData?.todayCodingTime?.trim();
-                    totalTime = campfireData?.totalCodingTime?.trim();
+                    const parser = new DOMParser();
+                    const campfireDoc = parser.parseFromString(campfireHtml, 'text/html');
+                    
+                    const todayTime = campfireDoc.querySelector('[data-hackatime-dashboard-target="todayTime"]')?.textContent.trim();
+                    const totalTime = campfireDoc.querySelector('[data-hackatime-dashboard-target="totalTime"]')?.textContent.trim();
 
                     if (!todayTime) {
-                        throw new Error("Your token seems to be corrupted! Please restart the authentication process at /auth/");
+                        throw new Error("Your token seems to be corrupted! Please start the authentication process at /auth/");
                     }
 
-                    const projectsRes = await fetch('/fetch', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({cookie, path: projectsPath})
+                    const projectsRes = await client.fetch(projectsPath, {
+                        headers: {
+                            Cookie: cookie,
+                            'User-Agent': navigator.userAgent,
+                            Accept: 'text/html',
+                        },
+                    });
+                    const projectsHtml = await projectsRes.text();
+
+                    const projectsDoc = parser.parseFromString(projectsHtml, 'text/html');
+                    const projects = [];
+                    projectsDoc.querySelectorAll('a[href^="/projects/"]').forEach(el => {
+                        projects.push({
+                            title: el.querySelector('h2.line-clamp-1')?.textContent.trim() || '',
+                            description: el.querySelector('p.line-clamp-3')?.textContent.trim() || '',
+                            codingTime: el.querySelector('p.text-gray-400')?.innerHTML.split('<br>')[0].trim() || '',
+                            devlogCount: el.querySelector('p.text-gray-400')?.innerHTML.split('<br>')[1].trim() || '',
+                            imageUrl: "https://summer.hackclub.com" + (el.querySelector('img.w-full.h-full.object-cover.rounded-xl')?.getAttribute('src')?.trim() || ""),
+                        });
                     });
 
-                    const projectsText = await projectsRes.text();
-                    console.log("raw /my_projects response", projectsText)
-                    
-                    let projectsData;
-                    try {
-                        const parsed = JSON.parse(projectsText);
-                        projectsData = parsed.extractedData?.yourProjects || [];
-                    } catch (e) {
-                        throw new Error("Invalid JSON response from backend (/my_projects).");
-                    }
-
-                    allProjects = projectsData;
-
+                    allProjects = projects;
                     projectCount.textContent = `Your Projects (${allProjects.length})`;
                     document.getElementById('today-coding-time__display').classList.remove('skeleton', 'skeleton-title');
                     document.getElementById('total-coding-time__display').classList.remove('skeleton', 'skeleton-title');
@@ -169,7 +186,7 @@
                     document.getElementById('roast-display').textContent = getDailyRoast(todayHrs);
                     document.getElementById('roast-display-2').textContent = getRoast(totalHrs);
 
-                    renderProjects()
+                    renderProjects();
                 } catch (err) {
                     console.error(err.message);
                 }
@@ -186,7 +203,11 @@
                     const banner = document.createElement('img');
                     banner.classList.add('project-card__banner');
                     const fallback = "/public/banner-placeholder.png";
-                    banner.src = fallback;
+                    banner.src = proj.imageUrl;
+                    banner.onerror = function() {
+                        this.onerror = null;
+                        this.src = fallback;
+                    };
                     card.appendChild(banner);
 
                     const title = document.createElement("h3");

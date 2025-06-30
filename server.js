@@ -100,7 +100,7 @@ app.post('/api/proxy-search', async (req, res) => {
     const { query } = req.body;
     const token = process.env.SEARCH_API_TOKEN;
 
-    if (!query) return res.status(400).json({ error: 'Missing query' });
+    if (!query) return res.status(400).json({ error: 'Missing query'});
 
     const url = `https://somps.vercel.app/api/search?q=${encodeURIComponent(query)}`;
 
@@ -146,6 +146,10 @@ app.post('/fetch', async (req, res) => {
         return res.status(400).send('Missing cookie or path');
     if (!allowedPaths.has(requestedPath))
         return res.status(403).send('Forbidden path');
+
+    if (typeof cookie !== 'string' || cookie.length > 5000) {
+        return res.status(400).json({error: 'Invalid cookie'});
+    }
 
     const effectiveCacheLifetime =
         PATH_CACHE_LIFETIMES[requestedPath] || DEFAULT_CACHE_LIFETIME_MS;

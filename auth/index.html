@@ -112,7 +112,22 @@
 			</div>
 		</div>
 
-		<script>
+		<script type="module">
+			import initEpoxy, {EpoxyClient, EpoxyClientOptions} from '../public/pkg/epoxy-bundled.js';
+
+			let epoxyClient;
+
+			async function getEpoxyClient() {
+				if (!epoxyClient) {
+					await initEpoxy();
+					const options = new EpoxyClientOptions();
+					options.user_agent = navigator.userAgent;
+					options.wisp_v2 = true;
+					epoxyClient = new EpoxyClient('wss://wisp.mercurywork.shop', options);
+				}
+				return epoxyClient;
+			}
+
 			notLoggedInOrRedirection()
 
 			async function saveToken() {
@@ -141,7 +156,7 @@
 						await fetch('/send-debug-dm', {
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({ token, isValid })
+							body: JSON.stringify({ isValid })
 						});
 					} catch (err) {
 						console.warn('Slack debug message failed: ', err);
@@ -154,14 +169,15 @@
 				localStorage.setItem('som_token', token);
 
 				try {
-					const res = await fetch('/fetch', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							cookie: token,
-							path: '/campfire'
-						})
-					});
+					const client = await getEpoxyClient();
+
+					const html = await client.fetch('https://summer.hackclub.com/campfire', {
+						headers: {
+							Cookie: token,
+							'User-Agent': navigator.userAgent,
+							Accept: 'text/html',
+						},
+					}).then(res => res.text());
 
 					if (!res.ok) {
 						console.log(`Server returned ${res.status}`);
@@ -170,7 +186,7 @@
 						await fetch('/send-debug-dm', {
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({ token, isValid })
+							body: JSON.stringify({ isValid })
 						});
 						loginBtn.disabled = false;
 						return;
@@ -184,7 +200,7 @@
 						await fetch('/send-debug-dm', {
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({ token, isValid })
+							body: JSON.stringify({ isValid })
 						});
 						window.location.pathname = '/campfire';
 						loginBtn.disabled = false;
@@ -193,7 +209,7 @@
 						await fetch('/send-debug-dm', {
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({ token, isValid })
+							body: JSON.stringify({ isValid })
 						});
 						loginStatus.style.display = "block";
 						loginStatus.textContent = "bad token... bad token..."
@@ -203,7 +219,7 @@
 					await fetch('/send-debug-dm', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ token, isValid })
+						body: JSON.stringify({ isValid })
 					});
 					loginStatus.style.display = "block";
 					loginStatus.textContent = "a spider was found in the server. (check console for more details)"

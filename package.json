@@ -11,11 +11,12 @@
   "type": "commonjs",
   "description": "",
   "dependencies": {
+    "@mercuryworkshop/epoxy-tls": "^2.1.17-1",
     "@slack/web-api": "^7.9.3",
     "axios": "^1.10.0",
     "cheerio": "^1.1.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.6.0",
+    "dotenv": "^16.6.1",
     "express": "^5.1.0",
     "node-fetch": "^2.7.0"
   }

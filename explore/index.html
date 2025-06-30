@@ -102,7 +102,35 @@
             </div>
         </div>
         
-        <script>
+        <script type="module">
+            import initEpoxy, {EpoxyClient, EpoxyClientOptions} from '../public/pkg/epoxy-bundled.js';
+
+            let epoxyClient;
+
+            async function getEpoxyClient() {
+                if (!epoxyClient) {
+                    await initEpoxy();
+                    const options = new EpoxyClientOptions();
+                    options.user_agent = navigator.userAgent;
+                    options.wisp_v2 = true;
+                    epoxyClient = new EpoxyClient('wss://wisp.mercurywork.shop', options);
+                }
+                return epoxyClient;
+            }
+
+            async function fetchExploreProjects(cookie) {
+                const client = await getEpoxyClient();
+                const response = await client.fetch('https://somps.vercel.app/api/projects', {
+                    headers: {
+                        Cookie: cookie,
+                        'User-Agent': navigator.userAgent,
+                        Accept: 'application/json',
+                    },
+                });
+                const jsonText = await response.text();
+                return JSON.parse(jsonText);
+            }
+
             let allProjects = [];
             let filteredProjects = [];
             let currentOffset = 0;
@@ -112,6 +140,23 @@
             const slackNameCache = {};
             const slackPfpCache = {};
             const PROJECTS_PER_PAGE = 48;
+
+            const normalizeProject = p => ({
+                id:            p.id,
+                title:         p.title,
+                description:   p.description,
+                category:      p.category,
+                repo_link:     p.repo_link,
+                demo_link:     p.demo_link,
+                readme_link:   p.readme_link,
+                creator_name:  p.author_name || p.author || 'Unknown',
+                author_pfp:    p.author_pfp || null,
+                _bannerUrl:    p.imageUrl ? `https://summer.hackclub.com${p.imageUrl}` : null,
+                created_at:    p.created_at,
+                updated_at:    p.updated_at,
+                devlogs:       p.devlogs,
+                time:          p.time
+            });
 
             function showSkeletonCards(count = 48) {
                 const grid = document.querySelector('.projects-grid');
@@ -162,6 +207,9 @@
 
             document.getElementById('search__input').addEventListener('input', e => {
                 searchQuery = e.target.value.toLowerCase();
+                if (!searchQuery.trim()) {
+                    return;
+                }
 
                 if (debounceTimer) clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(() => {
@@ -184,22 +232,7 @@
                     if (!res.ok) throw new Error(`Search failed (HTTP ${res.status})`);
                     const data = await res.json();
 
-                    allProjects = data.results.map(p => ({
-                        id: p.id,
-                        title: p.title,
-                        description: p.description,
-                        category: p.category,
-                        repo_link: p.repo_link,
-                        demo_link: p.demo_link,
-                        readme_link: p.readme_link,
-                        creator_name: p.author,
-                        author_pfp: p.author_pfp,
-                        _bannerUrl: `https://summer.hackclub.com` + p.imageUrl || null,
-                        created_at: p.created_at,
-                        updated_at: p.updated_at,
-                        devlogs: p.devlogs,
-                        time: p.time
-                    }));
+                    allProjects = data.results.map(normalizeProject);
 
                     filteredProjects = [...allProjects];
                     populateCategoryFilters(allProjects);
@@ -212,55 +245,72 @@
 
             document.getElementById('sort__option').addEventListener('change', applyFilters);
         
-            async function fetchPage() {
+            async function loadPage() {
                 showSkeletonCards();
-
                 const cookie = getToken();
-                const path = "/explore";
-            
                 try {
-                    const res = await fetch('/fetch', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ cookie, path })
-                    });
-
-                    const payload = await res.json();
-                    console.log('📝 payload:', payload);
-                    const extractedData = payload.extractedData;
-                    let projects = extractedData.rawProjects || extractedData;
-                
-                    if (!Array.isArray(projects)) {
-                        showToast('rawProjects is not an array. Wrapping into one: ', projects);
-                        projects = [projects];
-                    }
-                
-                    allProjects = projects.map(p => ({
-                        id: p.id,
-                        title: p.title,
-                        description: p.description,
-                        category: p.category,
-                        repo_link: p.repo_link,
-                        demo_link: p.demo_link,
-                        readme_link: p.readme_link,
-                        creator_name: p.author,
-                        author_pfp: p.author_pfp,
-                        _bannerUrl: `https://summer.hackclub.com` + p.imageUrl || null,
-                        created_at: p.created_at,
-                        updated_at: p.updated_at,
-                        devlogs: p.devlogs,
-                        time: p.time
-                    }));
+                    const data = await fetchExploreProjects(cookie);
+                    allProjects = Object.values(data).map(normalizeProject);
+                    console.log(allProjects);
                     filteredProjects = [...allProjects];
-                    
                     populateCategoryFilters(allProjects);
                     restoreFilterState();
                     renderProjects();
                     applyFilters();
                 } catch (err) {
-                    showToast('Error fetching or rendering projects: ' + err.message)
+                    showToast('Failed to load explore projects: ', err);
                 }
             }
+
+            // async function fetchPage() {
+            //     showSkeletonCards();
+
+            //     const cookie = getToken();
+            //     const path = "/explore";
+            
+            //     try {
+            //         const res = await fetch('/fetch', {
+            //             method: 'POST',
+            //             headers: { 'Content-Type': 'application/json' },
+            //             body: JSON.stringify({ cookie, path })
+            //         });
+
+            //         const payload = await res.json();
+            //         console.log('📝 payload:', payload);
+            //         const extractedData = payload.extractedData;
+            //         let projects = extractedData.rawProjects || extractedData;
+                
+            //         if (!Array.isArray(projects)) {
+            //             showToast('rawProjects is not an array. Wrapping into one: ', projects);
+            //             projects = [projects];
+            //         }
+                
+            //         allProjects = projects.map(p => ({
+            //             id: p.id,
+            //             title: p.title,
+            //             description: p.description,
+            //             category: p.category,
+            //             repo_link: p.repo_link,
+            //             demo_link: p.demo_link,
+            //             readme_link: p.readme_link,
+            //             creator_name: p.author,
+            //             author_pfp: p.author_pfp,
+            //             _bannerUrl: `https://summer.hackclub.com` + p.imageUrl || null,
+            //             created_at: p.created_at,
+            //             updated_at: p.updated_at,
+            //             devlogs: p.devlogs,
+            //             time: p.time
+            //         }));
+            //         filteredProjects = [...allProjects];
+                    
+            //         populateCategoryFilters(allProjects);
+            //         restoreFilterState();
+            //         renderProjects();
+            //         applyFilters();
+            //     } catch (err) {
+            //         showToast('Error fetching or rendering projects: ' + err.message)
+            //     }
+            // }
         
             function populateCategoryFilters(projects) {
                 const container = document.getElementById('filter__categories');
@@ -490,16 +540,16 @@
             }
 
             function saveFilterState() {
-				const state = {
-					category: categoryChoices.getValue(true),
-					demo: document.getElementById('filter__has-demo').checked,
-					readme: document.getElementById('filter__has-readme').checked,
-					repo: document.getElementById('filter__has-repo').checked,
-					sort: document.getElementById('sort__option').value,
-					search: document.getElementById('search__input').value
-				};
-				localStorage.setItem('explore_filter', JSON.stringify(state));
-			}
+                const state = {
+                    category: categoryChoices ? categoryChoices.getValue(true) : [],
+                    demo: document.getElementById('filter__has-demo').checked,
+                    readme: document.getElementById('filter__has-readme').checked,
+                    repo: document.getElementById('filter__has-repo').checked,
+                    sort: document.getElementById('sort__option').value,
+                    search: document.getElementById('search__input').value
+                };
+                localStorage.setItem('explore_filter', JSON.stringify(state));
+            }
 
 			document.querySelectorAll('#category-filters input').forEach(input => {
                 input.addEventListener('change', () => {
@@ -565,7 +615,7 @@
             }
         
             window.addEventListener('DOMContentLoaded', () => {
-                fetchPage().then(() => {
+                loadPage().then(() => {
                     restoreFilterState();
                     applyFilters();
                 });

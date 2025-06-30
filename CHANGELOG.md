@@ -2,6 +2,11 @@
 
 All our changes of logging... I meant Client of Making.
 
+## Alpha 6.5
+
+- Changed to Epoxy for security reasons.
+- Minor changes.
+
 ## Alpha 6.4
 
 - Added 🦶 footer
