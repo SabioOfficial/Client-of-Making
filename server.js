@@ -27,6 +27,7 @@ app.use(sendDebugDM);
 
 const allowedPaths = new Set([
     '/vote',
+    '/votes',
     '/shop',
     '/my_projects',
     '/campfire',

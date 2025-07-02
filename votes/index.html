@@ -46,20 +46,9 @@
             </div>
             <div class="main-area regular-glassmorphism">
                 <div id="main-area__section" class="main-area__section">
-                    <div class="cache__notice regular-glassmorphism">
-                        <img height="75" width="auto" id="happy-dino">
-                        <div style="display: flex; flex-direction: column;">
-                            <h2>We're doing our part!</h2>
-                            <p>We cache your campfire requests for 30 minutes to prevent slowing down Summer of Making!</p>
-                        </div>
-                    </div>
-
-                    <h2 class="heading">Votes</h2>
-
-                    <div class="approved__div regular-glassmorphism">
-                        <h3>There's been...</h3>
-                        <h2 id="approved__display">0 / 100 Quality Projects</h2>
-                        <p id="certified__display">and 0 Certified Projects.</p>
+                    <div class="under-construction__div regular-glassmorphism">
+                        <h2>Loading Projects...</h2>
+                        <p>Please wait while we fetch the latest voting projects.</p>
                     </div>
                 </div>
             </div>
@@ -83,7 +72,7 @@
 
             async function fetchVotes(cookie) {
                 const client = await getEpoxyClient();
-                const response = await client.fetch('https://summer.hackclub.com/votes/locked', {
+                const response = await client.fetch('https://summer.hackclub.com/votes/new', {
                     headers: {
                         Cookie: cookie,
                         'User-Agent': navigator.userAgent,
@@ -93,23 +82,117 @@
                 return response.text();
             }
 
-            function parseVotesHtml(html) {
+            function parseVotingPageData(html) {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
-                const votes = [];
-                doc.querySelectorAll('.card-with-gradient.text-lg.text-center').forEach(card => {
-                    const content = card.querySelector('.card-content');
-                    votes.push({
-                        approved: content.querySelector('p.text-2xl')?.textContent.trim().split('/')[0].trim(),
-                        certified: Number(
-                        Array.from(content.querySelectorAll('p'))
-                            .find(p => p.textContent.includes('certified projects, any amount of coding time)'))
-                            ?.textContent.match(/\d+/)?.[0] || 0
-                        ),
+
+                const votingData = {
+                    projects: [],
+                    voteForm: {},
+                    voteCount: {
+                        needed: 0,
+                        globalSubmitted: 0,
+                    },
+                };
+
+                const voteForm = doc.querySelector('form[action="/votes"]');
+                if (voteForm) {
+                    votingData.voteForm.action = voteForm.action;
+                    votingData.voteForm.method = voteForm.method;
+                    votingData.voteForm.authenticityToken = voteForm.querySelector(
+                        'input[name="authenticity_token"]',
+                    )?.value;
+                    votingData.voteForm.signature = voteForm.querySelector(
+                        'input[name="vote[signature]"]',
+                    )?.value;
+                    votingData.voteForm.shipEvent1Id = voteForm.querySelector(
+                        'input[name="vote[ship_event_1_id]"]',
+                    )?.value;
+                    votingData.voteForm.shipEvent2Id = voteForm.querySelector(
+                        'input[name="vote[ship_event_2_id]"]',
+                    )?.value;
+                } else {
+                    console.warn('Voting form not found in parsed HTML.')
+                    return votingData;
+                }
+
+                const voteCountParagraphs = doc.querySelectorAll(
+                    '.md\\:mt-\\[53\\].mt-4 + p, .text-lg.md\\:text-xl.opacity-60, .text-center.text-nice-blue.text-lg.mb-6',
+                );
+
+                const neededVotesParagraph = Array.from(voteCountParagraphs).find(p =>
+                    p.textContent.includes('You need to vote'),
+                );
+                if (neededVotesParagraph) {
+                    const match = neededVotesParagraph.textContent.match(/vote (\d+) more times!/);
+                    if (match) {
+                        votingData.voteCount.needed = parseInt(match[1]);
+                    }
+                }
+
+                const submittedVotesParagraph = Array.from(voteCountParagraphs).find(p =>
+                    p.textContent.includes('votes have been submitted so far!'),
+                );
+                if (submittedVotesParagraph) {
+                    const match = submittedVotesParagraph.textContent.match(
+                        /(\d+) votes have been submitted so far!/,
+                    );
+                    if (match) {
+                        votingData.voteCount.globalSubmitted = parseInt(match[1]);
+                    }
+                }
+
+                doc
+                    .querySelectorAll('.grid.grid-cols-1.lg\\:grid-cols-2 > div[data-project-index]')
+                    .forEach((projectDiv, index) => {
+                        const project = {};
+                        const projectIdElement = projectDiv.querySelector('input[type="radio"]');
+                        project.id = 
+                            index === 0
+                                ? votingData.voteForm.shipEvent1Id
+                                : votingData.voteForm.shipEvent2Id;
+
+                        project.banner = projectDiv.querySelector('div.rounded-lg img')?.src;
+                        project.title = projectDiv.querySelector('h3')?.textContent.trim();
+                        project.devlogs = projectDiv
+                            .querySelector('.flex-wrap.items-center span:first-child')
+                            ?.textContent.trim();
+                        project.timeSpent = projectDiv
+                            .querySelector('.flex-wrap.items-center span:nth-child(4)')
+                            ?.textContent.trim();
+                        
+                        project.description = projectDiv
+                            .querySelector('[data-devlog-card-target="content"]')
+                            ?.textContent.trim();
+                        
+                        project.demoLink = projectDiv.querySelector('a[data-analytics-link="demo"]')?.href;
+                        project.repoLink = projectDiv.querySelector('a[data-analytics-link="repo"]')?.href;
+
+                        project.devlogEntries = [];
+                        projectDiv
+                            .querySelectorAll('.space-y-4.sm\\:space-y-8 > .card-with-gradient')
+                            .forEach(devlogCard => {
+                                const devlog = {};
+                                devlog.author = devlogCard
+                                    .querySelector('.flex.items-center > div > span:not(.text-\\[\\#B89576\\])')
+                                    ?.textContent.trim();
+                                devlog.timeSpent = devlogCard
+                                    .querySelector('.text-\\[\\#B89576\\] span:first-child')
+                                    ?.textContent.trim();
+                                devlog.timeAgo = devlogCard
+                                    .querySelector('.text-\\[\\#B89576\\] span:nth-child(3)')
+                                    ?.textContent.trim();
+                                devlog.content = devlogCard
+                                    .querySelector('[data-devlog-card-target="content"]')
+                                    ?.innerHTML;
+                                devlog.attachment = devlogCard.querySelector('div.sm\\:mt-3 img')?.src;
+                                project.devlogEntries.push(devlog);
+                            });
+                        votingData.projects.push(project);
                     });
-                });
-                return votes;
-            }
+
+                return votingData;
+            };
 
             let votes = [];
 
@@ -121,18 +204,37 @@
             }
 
             async function loadPage() {
-                showSkeleton();
+                const mainAreaSection = document.getElementById('main-area__section');
+                mainAreaSection.innerHTML = `
+                    <div class="under-contruction__div regular-glassmorphism">
+                        <h2>Loading Projects...</h2>
+                        <p>Please wait while we fetch the latest voting projects.</p>
+                    </div>
+                `;
                 const cookie = getToken();
+                const votePath = '/votes/new';
+
                 try {
-                    const html = await fetchVotes(cookie);
-                    const votesArray = parseVotesHtml(html);
-                    document.getElementById('approved__display').classList.remove('skeleton', 'skeleton-title');
-                    document.getElementById('certified__display').classList.remove('skeleton', 'skeleton-line');
-                    votes = votesArray;
-                    console.log(votes)
-                    renderVotes();
+                    const client = await getEpoxyClient();
+                    const response = await client.fetch(`https://summer.hackclub.com${votePath}`, {
+                        headers: {
+                            Cookie: cookie,
+                            'User-Agent': navigator.userAgent,
+                            Accept: 'text/html',
+                        },
+                    });
+                    const html = await response.text();
+                    const votingPageData = parseVotingPageData(html);
+
+                    renderVotingPage(votingPageData);
                 } catch (err) {
-                    console.error('Failed to load votes:', err)
+                    console.error('Failed to load voting data:', err);
+                    mainAreaSection.innerHTML = `
+                        <div class="under-construction__div regular-glassmorphism">
+                            <h2>Error Loading Projects!</h2>
+                            <p>Failed to load voting projects. Please check your internet connection or try again later. (Error: ${err.message})</p>
+                        </div>
+                    `;
                 }
             }
 
@@ -170,25 +272,252 @@
             //     }
             // }
 
-            function renderVotes() {
-                const approvedDisplay  = document.getElementById('approved__display');
-                const certifiedDisplay = document.getElementById('certified__display');
+            function renderVotingPage(data) {
+                const mainAreaSection = document.getElementById('main-area__section');
+                mainAreaSection.innerHTML = '';
 
-                const a = votes[0]?.approved   ?? '0';
-                const c = votes[0]?.certified  ?? '0';
+                if (!data.projects || data.projects.length < 2 || !data.voteForm.authenticityToken) {
+                    mainAreaSection.innerHTML = `
+                        <div class="under-construction__div regular-glassmorphism">
+                            <h2>oops :c</h2>
+                            <p>no project r available for voting rn >:(</p>
+                        </div>
+                    `;
+                    return;
+                }
 
-                approvedDisplay .textContent = `${a} / 100 Quality Projects`;
-                certifiedDisplay.textContent = `and ${c} Certified Projects.`;
+                let projectsHtml = '';
+                data.projects.forEach((project, index) => {
+                    projectsHtml += `
+                        <div class="project-card custom-card-base" data-project-index="${index}">
+                            <div class="project-card-header">
+                                <div class="project-thumbnail">
+                                    <img alt="${project.title}" loading="lazy" src="${project.banner}"/>
+                                </div>
+                                <div class="project-info">
+                                    <h3 class="project-title">${project.title}</h3>
+                                    <div class="project-meta">
+                                        <span>${project.devlogs} devlogs</span>
+                                        <span>•</span>
+                                        <span>${project.timeSpent}</span>
+                                    </div>
+                                    <div class="project-description">
+                                        <div>${project.description}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="action-buttons-group">
+                                ${project.demoLink ? `<a href="${project.demoLink}" target="_blank" class="action-button action-button-demo">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="icon-small"><g fill="none" fill-rule="evenodd"><path d="M24 0v24H0V0zM12.593 23.258l-.011.002-.071.035-.02.004-.014-.004-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113-.013.002-.185.093-.01.01-.003.011.018.43.005.012.008.007.201.093c.012.004.023 0 .029-.008l.004-.014-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014-.034.614c0 .012.007.02.017.024l.015-.002.201-.093.01-.008.004-.011.017-.43-.003-.012-.01-.01z"></path><path fill="#09244BFF" fill-rule="nonzero" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2m2 11.4-1.564 1.251a.5.5 0 0 0-.041.744l1.239 1.239a2 2 0 0 1 .508.864l.175.613a1.8 1.8 0 0 0 1.017 1.163 8.021 8.021 0 0 0 2.533-1.835l-.234-1.877a2 2 0 0 0-1.09-1.54l-1.47-.736A1 1 0 0 0 14 13.4M12 4a7.987 7.987 0 0 0-6.335 3.114l-.165.221V9.02a3 3 0 0 0 1.945 2.809l.178.06 1.29.395c1.373.42 2.71-.697 2.577-2.096l-.019-.145-.175-1.049a1 1 0 0 1 .656-1.108l.108-.03.612-.14a2.667 2.667 0 0 0 1.989-3.263A7.987 7.987 0 0 0 12 4"></path></g></svg>
+                                    Demo
+                                </a>` : ''}
+                                ${project.repoLink ? `<a href="${project.repoLink}" target="_blank" class="action-button action-button-repo">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="icon-small"><g fill="none"><path d="M24 0v24H0V0zM12.593 23.258l-.011.002-.071.035-.02.004-.014-.004-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113-.013.002-.185.093-.01.01-.003.011.018.43.005.012.008.007.201.093c.012.004.023 0 .029-.008l.004-.014-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014-.034.614c0 .012.007.02.017.024l.015-.002.201-.093.01-.008.004-.011.017-.43-.003-.012-.01-.01z"></path><path fill="#09244BFF" d="M3 6a3 3 0 1 1 4 2.83v2.705A3.982 3.982 0 0 1 9 11h6a2 2 0 0 0 2-2v-.17a3.001 3.001 0 1 1 2 0V9a4 4 0 0 1-4 4H9a2 2 0 0 0-2 2v.17a3.001 3.001 0 1 1-2 0V8.83A3.001 3.001 0 0 1 3 6"></path></g></svg>
+                                    Repository
+                                </a>` : ''}
+                                <button class="action-button action-button-report" disabled>🚩 Report Fraud</button>
+                            </div>
+
+                            <div class="devlog-list">
+                                ${project.devlogEntries
+                                .map(
+                                    devlog => `
+                                    <div class="devlog-card custom-card-base">
+                                        <div class="devlog-header">
+                                            <img src="${
+                                            devlog.authorAvatar ||
+                                            'https://secure.gravatar.com/avatar/4dea9b8b278b9ecd6a9d5384faad1653.jpg?s=192&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0014-192.png'
+                                            }" alt="${
+                                            devlog.author
+                                            }" class="devlog-avatar" loading="lazy">
+                                            <div>
+                                                <span class="devlog-author">${
+                                                devlog.author
+                                                }</span>
+                                                <div class="devlog-meta">
+                                                    <span>${
+                                                    devlog.timeSpent
+                                                    } spent working</span>
+                                                    <span> • </span>
+                                                    <span>${devlog.timeAgo}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="devlog-content">
+                                            ${devlog.content}
+                                        </div>
+                                        ${
+                                        devlog.attachment
+                                            ? `<div class="devlog-attachment-container"><img alt="Devlog attachment" class="devlog-attachment" src="${devlog.attachment}" /></div>`
+                                            : ''
+                                        }
+                                    </div>
+                                `,
+                                )
+                                .join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                mainAreaSection.innerHTML = `
+                    <div class="page-content-wrapper">
+                        <h1 class="page-title">Vote <span class="vote-needed-message">${data.voteCount.needed} needed!</span></h1>
+                        <p class="page-subtitle">Vote on others' projects! ${data.voteCount.globalSubmitted} votes have been submitted so far!</p>
+
+                        <div class="project-comparison-grid">
+                            ${projectsHtml}
+                        </div>
+
+                        <div class="vote-form-container">
+                            <form id="voteSubmissionForm" class="vote-form">
+                                <input type="hidden" name="authenticity_token" value="${data.voteForm.authenticityToken}" />
+                                <input type="hidden" name="vote[ship_event_1_id]" value="${data.voteForm.shipEvent1Id}" />
+                                <input type="hidden" name="vote[ship_event_2_id]" value="${data.voteForm.shipEvent2Id}" />
+                                <input type="hidden" name="vote[signature]" value="${data.voteForm.signature}" />
+                                <input type="hidden" name="vote[project_1_demo_opened]" value="false" />
+                                <input type="hidden" name="vote[project_1_repo_opened]" value="false" />
+                                <input type="hidden" name="vote[project_2_demo_opened]" value="false" />
+                                <input type="hidden" name="vote[project_2_repo_opened]" value="false" />
+                                <input type="hidden" name="vote[time_spent_voting_ms]" value="0" />
+                                <input type="hidden" name="vote[music_played]" value="false" />
+                                <input type="hidden" name="commit" value="Submit Vote" />
+
+                                <h2 class="vote-question">
+                                    A good ship is technical, creative, and tells the story of how it was made.
+                                    By that definition, which of these two projects is better?
+                                </h2>
+
+                                <div class="vote-options-group">
+                                    <label class="vote-option-label">
+                                        <input class="vote-option-input" required type="radio" value="${data.projects[0].id}" name="vote[winning_project_id]" id="project_choice_${data.projects[0].id}" />
+                                        <div class="vote-option-button">${data.projects[0].title}</div>
+                                    </label>
+
+                                    <label class="vote-option-label">
+                                        <input class="vote-option-input" required type="radio" value="tie" name="vote[winning_project_id]" id="project_choice_tie" />
+                                        <div class="vote-option-button">Tie</div>
+                                    </label>
+
+                                    <label class="vote-option-label">
+                                        <input class="vote-option-input" required type="radio" value="${data.projects[1].id}" name="vote[winning_project_id]" id="project_choice_${data.projects[1].id}" data-project-id="project2" />
+                                        <div class="vote-option-button">${data.projects[1].title}</div>
+                                    </label>
+                                </div>
+
+                                <div class="explanation-section">
+                                    <textarea class="vote-explanation-textarea" rows="4" required placeholder="Tell us why you made this choice..." name="vote[explanation]" id="vote_explanation_text"></textarea>
+                                </div>
+
+                                <div class="submit-button-section">
+                                    <button type="submit" class="submit-vote-button">Submit Vote</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+
+                document
+                    .getElementById('voteSubmissionForm')
+                    .addEventListener('submit', handleVoteSubmission);
             }
 
-            const happyDinoImages = [
-                '/public/orpheus/party_dino.gif',
-                '/public/orpheus/chill_dino.png',
-                '/public/orpheus/party_orpheus.png',
-                '/public/orpheus/nervous_dino.gif' // because i might've done my cache wrong who knows?
-            ];
-            const randomIndex = Math.floor(Math.random() * happyDinoImages.length);
-            document.getElementById('happy-dino').src = happyDinoImages[randomIndex];
+            async function handleVoteSubmission(event) {
+                event.preventDefault();
+                const form = event.target;
+                const formData = new FormData(form);
+
+                const authenticityToken = formData.get('authenticity_token');
+                const signature = formData.get('vote[signature]');
+                const shipEvent1Id = formData.get('vote[ship_event_1_id]');
+                const shipEvent2Id = formData.get('vote[ship_event_2_id]');
+                const winningProjectId = formData.get('vote[winning_project_id]');
+                const explanation = formData.get('vote[explanation]')?.trim();
+
+                if (!winningProjectId) {
+                    alert('Please select a project or tie.');
+                    return;
+                }
+                if (!explanation) {
+                    alert('Please provide an explanation.');
+                    return;
+                }
+
+                const params = new URLSearchParams();
+                params.append('authenticity_token', authenticityToken);
+                params.append('vote[ship_event_1_id]', shipEvent1Id);
+                params.append('vote[ship_event_2_id]', shipEvent2Id);
+                params.append('vote[signature]', signature);
+                params.append('vote[winning_project_id]', winningProjectId);
+                params.append('vote[explanation]', explanation);
+                params.append('vote[project_1_demo_opened]', 'true');
+                params.append('vote[project_1_repo_opened]', 'true');
+                params.append('vote[project_2_demo_opened]', 'true');
+                params.append('vote[project_2_repo_opened]', 'true');
+                params.append('vote[time_spent_voting_ms]', '0');
+                params.append('vote[music_played]', 'false');
+                params.append('commit', 'Submit Vote');
+
+                for (const [key, value] of params.entries()) {
+                    console.log(`${key}: ${value}`);
+                }
+
+                const cookie = getToken();
+
+                try {
+                    const client = await getEpoxyClient();
+                    const response = await client.fetch(
+                        'https://summer.hackclub.com/votes',
+                        {
+                            method: 'POST',
+                            headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                            Cookie: cookie,
+                            'User-Agent': navigator.userAgent,
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-Token': authenticityToken,
+                            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                            },
+                            body: params.toString()
+                        }
+                    );
+
+                    console.log('Response status:', response.status);
+                    const text = await response.text();
+                    console.log('Response body:', text);
+
+                    if (response.ok) {
+                        alert('Vote submitted successfully!');
+                        loadPage();
+                    } else {
+                        console.error('Failed to submit vote:', response.status, text);
+
+                        if (response.status === 422) {
+                            alert("❌ Vote failed (422 Unprocessable Entity). Your session or token might be invalid. Refreshing projects...");
+                            loadPage();
+                        } else {
+                            alert(`❌ Failed to submit vote: ${response.status}. Check console for details.`);
+                        }
+                        const submitButton = form.querySelector('button[type="submit"]');
+                        if (submitButton) {
+                            submitButton.disabled = false;
+                        }
+                    }
+                } catch (err) {
+                    console.error('Network error:', err);
+                    alert('Network error. Please try again.');
+                }
+            }
+
+            // const happyDinoImages = [
+            //     '/public/orpheus/party_dino.gif',
+            //     '/public/orpheus/chill_dino.png',
+            //     '/public/orpheus/party_orpheus.png',
+            //     '/public/orpheus/nervous_dino.gif' // because i might've done my cache wrong who knows?
+            // ];
+            // const randomIndex = Math.floor(Math.random() * happyDinoImages.length);
+            // document.getElementById('happy-dino').src = happyDinoImages[randomIndex];
 
             loadPage();
         </script>
