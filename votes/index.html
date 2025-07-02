@@ -447,19 +447,19 @@
                 }
 
                 const params = new URLSearchParams();
-                params.append('authenticity_token', authenticityToken);
-                params.append('vote[ship_event_1_id]', shipEvent1Id);
-                params.append('vote[ship_event_2_id]', shipEvent2Id);
-                params.append('vote[signature]', signature);
-                params.append('vote[winning_project_id]', winningProjectId);
-                params.append('vote[explanation]', explanation);
-                params.append('vote[project_1_demo_opened]', 'true');
-                params.append('vote[project_1_repo_opened]', 'true');
-                params.append('vote[project_2_demo_opened]', 'true');
-                params.append('vote[project_2_repo_opened]', 'true');
-                params.append('vote[time_spent_voting_ms]', '0');
-                params.append('vote[music_played]', 'false');
-                params.append('commit', 'Submit Vote');
+                // params.append('authenticity_token', authenticityToken);
+                // params.append('vote[ship_event_1_id]', shipEvent1Id);
+                // params.append('vote[ship_event_2_id]', shipEvent2Id);
+                // params.append('vote[signature]', signature);
+                // params.append('vote[winning_project_id]', winningProjectId);
+                // params.append('vote[explanation]', explanation);
+                // params.append('vote[project_1_demo_opened]', 'true');
+                // params.append('vote[project_1_repo_opened]', 'true');
+                // params.append('vote[project_2_demo_opened]', 'true');
+                // params.append('vote[project_2_repo_opened]', 'true');
+                // params.append('vote[time_spent_voting_ms]', '0');
+                // params.append('vote[music_played]', 'false');
+                // params.append('commit', 'Submit Vote');
 
                 for (const [key, value] of params.entries()) {
                     console.log(`${key}: ${value}`);
@@ -470,16 +470,18 @@
                 try {
                     const client = await getEpoxyClient();
                     const response = await client.fetch(
-                        'https://summer.hackclub.com/votes',
+                        'https://cors-anywhere.herokuapp.com/https://summer.hackclub.com/votes/new',
                         {
                             method: 'POST',
                             headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                            Cookie: cookie,
-                            'User-Agent': navigator.userAgent,
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-Token': authenticityToken,
-                            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                                Cookie: cookie,
+                                'User-Agent': navigator.userAgent,
+                                'Referer': 'https://cors-anywhere.herokuapp.com/',
+                                'Origin': 'https://cors-anywhere.herokuapp.com',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-Token': authenticityToken,
+                                Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
                             },
                             body: params.toString()
                         }
@@ -501,9 +503,10 @@
                         } else {
                             alert(`❌ Failed to submit vote: ${response.status}. Check console for details.`);
                         }
-                        const submitButton = form.querySelector('button[type="submit"]');
+                        const submitButton = form.querySelector('input[type="submit"][name="commit"]');
                         if (submitButton) {
                             submitButton.disabled = false;
+                            submitButton.value = 'Submit Vote';
                         }
                     }
                 } catch (err) {
