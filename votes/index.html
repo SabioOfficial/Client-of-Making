@@ -467,7 +467,7 @@
 
                 try {
                     const client = await getEpoxyClient();
-                    const response = await client.fetch(
+                    const response = await fetch(
                         'https://cors-anywhere.herokuapp.com/https://summer.hackclub.com/votes/new',
                         {
                             method: 'POST',
