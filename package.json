@@ -5,20 +5,17 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SabioOfficial/Client-of-Making.git"
+  },
   "keywords": [],
-  "author": "",
+  "author": "Sabio",
   "license": "ISC",
   "type": "commonjs",
-  "description": "",
-  "dependencies": {
-    "@mercuryworkshop/epoxy-tls": "^2.1.17-1",
-    "@slack/web-api": "^7.9.3",
-    "axios": "^1.10.0",
-    "cheerio": "^1.1.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.6.1",
-    "express": "^5.1.0",
-    "node-fetch": "^2.7.0",
-    "querystring": "^0.2.1"
-  }
+  "bugs": {
+    "url": "https://github.com/SabioOfficial/Client-of-Making/issues"
+  },
+  "homepage": "https://github.com/SabioOfficial/Client-of-Making#readme",
+  "description": ""
 }
